@@ -1,0 +1,147 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isTeacher() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null && userDoc.data.role == 'teacher';
+    }
+
+    // --- Users ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['role', 'realName', 'createdAt'])
+        && data.role is string && (data.role == 'student' || data.role == 'teacher')
+        && data.realName is string && data.realName.size() <= 100
+        && (!data.keys().hasAny(['email']) || (data.email is string))
+        && (!data.keys().hasAny(['studentEmails']) || (data.studentEmails is list))
+        && (!data.keys().hasAny(['classes']) || (data.classes is list))
+        && (!data.keys().hasAny(['codeName']) || (data.codeName is string && data.codeName.size() <= 100))
+        && (!data.keys().hasAny(['streakCount']) || (data.streakCount is number))
+        && (!data.keys().hasAny(['lastActiveDate']) || (data.lastActiveDate is string))
+        && (!data.keys().hasAny(['earnedBadges']) || (data.earnedBadges is list))
+        && (!data.keys().hasAny(['xp']) || (data.xp is number))
+        && data.createdAt == request.time;
+    }
+
+    function isValidUserUpdate(data) {
+      return data.role is string && (data.role == 'student' || data.role == 'teacher')
+        && data.realName is string && data.realName.size() <= 100
+        && (!data.keys().hasAny(['email']) || (data.email is string))
+        && (!data.keys().hasAny(['studentEmails']) || (data.studentEmails is list))
+        && (!data.keys().hasAny(['classes']) || (data.classes is list))
+        && (!data.keys().hasAny(['codeName']) || (data.codeName is string && data.codeName.size() <= 100))
+        && (!data.keys().hasAny(['streakCount']) || (data.streakCount is number))
+        && (!data.keys().hasAny(['lastActiveDate']) || (data.lastActiveDate is string))
+        && (!data.keys().hasAny(['earnedBadges']) || (data.earnedBadges is list))
+        && (!data.keys().hasAny(['xp']) || (data.xp is number));
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn(); // allow all signed in users to get user profiles to resolve emails and names
+      allow list: if isSignedIn(); // allow listing to query by email
+      
+      allow create: if isSignedIn() 
+        && isValidId(userId)
+        && request.auth.uid == userId 
+        && isValidUser(incoming())
+        && incoming().keys().size() <= 10;
+
+      allow update: if isSignedIn() 
+        && request.auth.uid == userId 
+        && isValidUserUpdate(incoming())
+        && incoming().role == existing().role // Cannot change role
+        && incoming().createdAt == existing().createdAt // Cannot change creation time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['realName', 'codeName', 'updatedAt', 'streakCount', 'lastActiveDate', 'earnedBadges', 'xp', 'studentEmails', 'email', 'classes']);
+    }
+
+    // --- Quizzes ---
+    function isValidQuiz(data) {
+      return data.keys().hasAll(['title', 'creatorId', 'isPublic', 'questionsData', 'createdAt'])
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.creatorId is string && data.creatorId.size() <= 128
+        && data.isPublic is bool
+        && data.questionsData is string && data.questionsData.size() <= 1048576 // 1MB limit for string
+        && data.createdAt == request.time;
+    }
+
+    function isValidQuizUpdate(data) {
+      return data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && data.creatorId is string && data.creatorId.size() <= 128
+        && data.isPublic is bool
+        && data.questionsData is string && data.questionsData.size() <= 1048576;
+    }
+
+    match /quizzes/{quizId} {
+      allow get: if isSignedIn() && (existing().isPublic == true || existing().creatorId == request.auth.uid || isTeacher());
+      allow list: if isSignedIn() && (resource.data.isPublic == true || resource.data.creatorId == request.auth.uid);
+
+      allow create: if isSignedIn()
+        && isValidId(quizId)
+        && isValidQuiz(incoming())
+        && incoming().creatorId == request.auth.uid
+        && incoming().keys().size() == 5;
+        
+      allow update: if isSignedIn()
+        && existing().creatorId == request.auth.uid
+        && isValidQuizUpdate(incoming())
+        && incoming().creatorId == existing().creatorId // Immutable
+        && incoming().createdAt == existing().createdAt // Immutable
+        && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'isPublic', 'questionsData', 'updatedAt']);
+        
+      allow delete: if isSignedIn() && existing().creatorId == request.auth.uid;
+    }
+
+    // --- Classes ---
+    match /classes/{classId} {
+      allow read: if isSignedIn();
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      // Teacher can update, or a student can update to add themselves (only studentEmails changed)
+      allow update: if (isTeacher() && resource.data.teacherId == request.auth.uid)
+                    || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentEmails']));
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+
+    // --- Submissions ---
+    function isValidSubmission(data) {
+      return data.keys().hasAll(['quizId', 'studentId', 'teacherId', 'score', 'completedAt'])
+        && data.quizId is string && data.quizId.size() <= 128
+        && data.studentId is string && data.studentId.size() <= 128
+        && data.teacherId is string && data.teacherId.size() <= 128
+        && data.score is number
+        && data.completedAt == request.time;
+    }
+
+    match /submissions/{submissionId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn()
+        && isValidId(submissionId)
+        && isValidSubmission(incoming())
+        && incoming().studentId == request.auth.uid
+        && incoming().keys().size() <= 6; // Allow for quizTitle or studentName
+        
+      allow update: if false; // Immutable, no updates to submissions
+      allow delete: if isSignedIn() && isTeacher(); // Teachers can delete
+    }
+  }
+}

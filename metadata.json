@@ -1,0 +1,6 @@
+{
+  "name": "Learnix",
+  "description": "An interactive learning app with gamified challenges, AI-driven study paths, and live classroom assessments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile containing role and identity information.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["student", "teacher"]
+        },
+        "realName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "codeName": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["role", "realName", "createdAt"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "A quiz created by a student or teacher.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "creatorId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["title", "creatorId", "isPublic", "createdAt"]
+    },
+    "Submission": {
+      "title": "Quiz Submission",
+      "description": "A student's completion record of a quiz.",
+      "type": "object",
+      "properties": {
+        "quizId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "studentId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "score": {
+          "type": "number"
+        },
+        "completedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["quizId", "studentId", "score", "completedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profiles."
+    },
+    "/quizzes/{quizId}": {
+      "schema": {
+        "$ref": "#/entities/Quiz"
+      },
+      "description": "Stores quiz metadata."
+    },
+    "/submissions/{submissionId}": {
+      "schema": {
+        "$ref": "#/entities/Submission"
+      },
+      "description": "Stores quiz submissions."
+    }
+  }
+}
