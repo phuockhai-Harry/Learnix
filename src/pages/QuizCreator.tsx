@@ -41,11 +41,17 @@ export default function QuizCreator() {
     setSaving(true);
     try {
       const newQuizRef = doc(collection(db, 'quizzes'));
+      
+      const randomSeed = Math.floor(Math.random() * 1000000);
+      const encodedPrompt = encodeURIComponent(`3d render of education learning path colorful modern bright background for quiz ${title}`);
+      const bannerUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${randomSeed}`;
+
       await setDoc(newQuizRef, {
         title,
         creatorId: user.uid,
         isPublic,
         questionsData: JSON.stringify(questions),
+        bannerUrl,
         createdAt: serverTimestamp(),
       });
       navigate('/');

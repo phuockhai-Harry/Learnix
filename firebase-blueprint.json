@@ -7,7 +7,7 @@
       "properties": {
         "role": {
           "type": "string",
-          "enum": ["student", "teacher"]
+          "enum": ["student", "teacher", "admin"]
         },
         "realName": {
           "type": "string",
@@ -67,6 +67,116 @@
         }
       },
       "required": ["quizId", "studentId", "score", "completedAt"]
+    },
+    "StudyPlan": {
+      "title": "Study Plan",
+      "description": "A student's exam dates and generated daily study schedule.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "exams": {
+          "type": "array"
+        },
+        "schedule": {
+          "type": "array"
+        },
+        "dailyHoursTarget": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["studentId", "exams", "schedule"]
+    },
+    "LessonProgress": {
+      "title": "Lesson Progress",
+      "description": "Records student completion, scores, and mastery of individual lessons and modules.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "lessonId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "grade": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "in_progress", "completed"]
+        },
+        "completed": {
+          "type": "boolean"
+        },
+        "score": {
+          "type": "number"
+        },
+        "mastery": {
+          "type": "number"
+        },
+        "lastAccessedAt": {
+          "type": "timestamp"
+        },
+        "updatedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["studentId", "lessonId", "status", "completed"]
+    },
+    "LearningPath": {
+      "title": "Personalized Learning Path",
+      "description": "Stores personalized learning path data including milestones, target goals, pace, and recommendations.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "grade": {
+          "type": "number"
+        },
+        "targetGoal": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "overallProgress": {
+          "type": "number"
+        },
+        "dailyPaceMinutes": {
+          "type": "number"
+        },
+        "strengths": {
+          "type": "array"
+        },
+        "focusAreas": {
+          "type": "array"
+        },
+        "milestones": {
+          "type": "array"
+        },
+        "recommendedModules": {
+          "type": "array"
+        },
+        "updatedAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["studentId", "grade", "targetGoal", "overallProgress", "milestones"]
     }
   },
   "firestore": {
@@ -87,6 +197,24 @@
         "$ref": "#/entities/Submission"
       },
       "description": "Stores quiz submissions."
+    },
+    "/studyPlans/{planId}": {
+      "schema": {
+        "$ref": "#/entities/StudyPlan"
+      },
+      "description": "Stores student study schedules and exam dates."
+    },
+    "/progress/{progressId}": {
+      "schema": {
+        "$ref": "#/entities/LessonProgress"
+      },
+      "description": "Stores individual student lesson and module completion progress."
+    },
+    "/learningPaths/{pathId}": {
+      "schema": {
+        "$ref": "#/entities/LearningPath"
+      },
+      "description": "Stores student personalized learning path and milestone roadmap."
     }
   }
 }

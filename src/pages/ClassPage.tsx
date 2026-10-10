@@ -4,8 +4,12 @@ import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRem
 import { db } from '../firebase';
 import { useAuth } from '../auth';
 import { useLanguage } from '../i18n';
-import { Users, Link2, Check, Trophy, ArrowLeft } from 'lucide-react';
+import { Users, Link2, Check, Trophy, ArrowLeft, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { setupPdfUnicode, removeVietnameseTones } from '../lib/pdfUnicode';
+import { QuizDownloadButton } from '../components/QuizDownloadButton';
 
 export default function ClassPage() {
   const { classId } = useParams<{ classId: string }>();
@@ -22,7 +26,6 @@ export default function ClassPage() {
   const [emailInput, setEmailInput] = useState('');
   const [addingStudent, setAddingStudent] = useState(false);
   const [addStudentError, setAddStudentError] = useState('');
-  const [allStudentEmails, setAllStudentEmails] = useState<string[]>([]);
   const [myQuizzes, setMyQuizzes] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
 
@@ -30,7 +33,6 @@ export default function ClassPage() {
     if (!user || !profile || !classId) return;
 
     let unsubscribeClass: () => void;
-    let unsubscribeUsers: () => void;
 
     const fetchData = async () => {
       try {
@@ -101,13 +103,6 @@ export default function ClassPage() {
             setLeaderboard([]);
           }
         });
-
-        if (profile.role === 'teacher') {
-          const allUsersQ = query(collection(db, 'users'), where('role', '==', 'student'));
-          unsubscribeUsers = onSnapshot(allUsersQ, (allUsersSnap) => {
-            setAllStudentEmails(allUsersSnap.docs.map(d => d.data().email).filter(Boolean));
-          });
-        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -119,7 +114,6 @@ export default function ClassPage() {
 
     return () => {
       if (unsubscribeClass) unsubscribeClass();
-      if (unsubscribeUsers) unsubscribeUsers();
     };
   }, [user, profile, classId, navigate]);
 
@@ -136,39 +130,23 @@ export default function ClassPage() {
     setAddStudentError('');
     if (!user || !emailInput.trim() || !classData) return;
     
-    const inputEmail = emailInput.trim();
-    let matchedEmail = allStudentEmails.find(email => email.toLowerCase() === inputEmail.toLowerCase());
-
-    if (!matchedEmail) {
-      try {
-        const usersQ = query(collection(db, 'users'), where('email', '==', inputEmail));
-        const usersSnap = await getDocs(usersQ);
-        if (!usersSnap.empty) {
-          matchedEmail = usersSnap.docs[0].data().email;
-        }
-      } catch (e) {
-        console.error("Error verifying email in Firestore", e);
-      }
-    }
-
-    if (!matchedEmail) {
-      const confirmAdd = window.confirm(t('teacher.email_not_found') + ' Do you still want to add this email as a Pending invite?');
-      if (!confirmAdd) {
-        setAddStudentError(t('teacher.email_not_found'));
-        return;
-      }
-      matchedEmail = inputEmail;
+    const inputEmail = emailInput.trim().toLowerCase();
+    
+    // Check if already in class
+    if (classData.studentEmails && classData.studentEmails.some((em: string) => em.toLowerCase() === inputEmail)) {
+      setAddStudentError(t('teacher.student_already_added') || 'Học sinh này đã có trong danh sách lớp.');
+      return;
     }
 
     setAddingStudent(true);
     try {
       await updateDoc(doc(db, 'classes', classId!), {
-        studentEmails: arrayUnion(matchedEmail)
+        studentEmails: arrayUnion(inputEmail)
       });
       setEmailInput('');
     } catch (error) {
       console.error(error);
-      alert("Failed to add student.");
+      setAddStudentError(t('teacher.add_student_failed') || "Failed to add student.");
     } finally {
       setAddingStudent(false);
     }
@@ -184,6 +162,83 @@ export default function ClassPage() {
     }
   };
 
+  const exportStudentPDF = async (studentId: string, studentName: string) => {
+    try {
+      const doc = new jsPDF();
+      const hasUnicode = await setupPdfUnicode(doc);
+      const fontName = hasUnicode ? 'Roboto' : 'helvetica';
+      const formatTxt = (txt: string) => (hasUnicode ? txt : removeVietnameseTones(txt));
+
+      doc.setFont(fontName, 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(15, 23, 42);
+      doc.text(formatTxt(`Student Report: ${studentName}`), 14, 22);
+
+      doc.setFont(fontName, 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(formatTxt(`Class: ${classData?.name || 'Classroom'} | Generated: ${new Date().toLocaleDateString()}`), 14, 28);
+      
+      const studentSubs = submissions.filter(sub => sub.studentId === studentId);
+      const tableData = studentSubs.map(sub => {
+        const quiz = myQuizzes.find(q => q.id === sub.quizId);
+        const title = quiz ? quiz.title : 'Unknown Quiz';
+        const date = sub.completedAt?.toDate ? sub.completedAt.toDate().toLocaleDateString() : 'N/A';
+        return [formatTxt(title), sub.score.toString(), date];
+      });
+
+      autoTable(doc, {
+        startY: 34,
+        styles: { font: fontName },
+        headStyles: { font: fontName, fontStyle: 'bold', fillColor: [13, 148, 136] },
+        head: [['Quiz Title', 'Score', 'Completed Date']],
+        body: tableData.length > 0 ? tableData : [['No completed quizzes yet.', '', '']],
+        theme: 'striped'
+      });
+
+      doc.save(`student_report_${studentName.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) {
+      console.error('Failed to export student PDF:', err);
+    }
+  };
+
+  const [hwQuizId, setHwQuizId] = useState('');
+  const [hwDueDate, setHwDueDate] = useState('');
+  const [hwTitle, setHwTitle] = useState('');
+
+  const handleAssignHomework = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hwQuizId || !hwDueDate || !hwTitle) return;
+    try {
+      const newHw = {
+        id: Date.now().toString(),
+        quizId: hwQuizId,
+        title: hwTitle,
+        dueDate: hwDueDate,
+        teacherId: classData.teacherId
+      };
+      await updateDoc(doc(db, 'classes', classId!), {
+        homeworks: arrayUnion(newHw)
+      });
+      setHwQuizId('');
+      setHwDueDate('');
+      setHwTitle('');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteHomework = async (hwToRemove: any) => {
+    if (!isTeacher) return;
+    try {
+      await updateDoc(doc(db, 'classes', classId!), {
+        homeworks: arrayRemove(hwToRemove)
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (loading || !classData) {
     return <div className="text-center py-10 flex justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div></div>;
   }
@@ -196,38 +251,159 @@ export default function ClassPage() {
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
       </Link>
       
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{classData.name}</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-             Teacher: {classData.teacherName}
-             {isTeacher && ` • Class Code: ${classData.classCode}`}
-          </p>
-        </div>
-        {isTeacher && (
-          <div className="mt-4 sm:mt-0">
-            <button
-              onClick={() => handleCopyLink(classData.classCode)}
-              className="flex items-center justify-center space-x-2 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-4 py-2 rounded-lg font-medium transition-colors border border-blue-200 dark:border-blue-800"
-            >
-              {copiedId === classData.classCode ? (
-                <>
-                  <Check className="w-5 h-5 text-green-500" />
-                  <span className="text-green-600 dark:text-green-400 font-bold">{t('teacher.link_copied')}</span>
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-5 h-5" />
-                  <span>{t('teacher.copy_link')}</span>
-                </>
-              )}
-            </button>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {classData.bannerUrl && (
+          <div className="w-full h-48 md:h-64 relative">
+            <img 
+              src={classData.bannerUrl} 
+              alt={classData.name} 
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent"></div>
           </div>
         )}
+        
+        <div className={`p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center ${classData.bannerUrl ? 'mt-[-80px] relative z-10' : ''}`}>
+          <div className={classData.bannerUrl ? 'text-white' : ''}>
+            <h1 className="text-3xl font-bold mb-2 drop-shadow-md">{classData.name}</h1>
+            <p className={classData.bannerUrl ? "text-gray-200 drop-shadow-sm font-medium" : "text-gray-600 dark:text-gray-400 font-medium"}>
+               Teacher: {classData.teacherName}
+               {isTeacher && ` • Class Code: ${classData.classCode}`}
+            </p>
+          </div>
+          {isTeacher && (
+            <div className="mt-4 sm:mt-0">
+              <button
+                onClick={() => handleCopyLink(classData.classCode)}
+                className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors border shadow-sm backdrop-blur-sm
+                  ${classData.bannerUrl 
+                    ? 'bg-white/20 hover:bg-white/30 text-white border-white/30' 
+                    : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800'
+                  }`}
+              >
+                {copiedId === classData.classCode ? (
+                  <>
+                    <Check className={`w-5 h-5 ${classData.bannerUrl ? 'text-green-300' : 'text-green-500'}`} />
+                    <span className={`font-bold ${classData.bannerUrl ? 'text-green-100' : 'text-green-600 dark:text-green-400'}`}>{t('teacher.link_copied')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="w-5 h-5" />
+                    <span>{t('teacher.copy_link')}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          
+          {isTeacher && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Trophy className="text-purple-500" /> Assign Homework
+              </h2>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <form onSubmit={handleAssignHomework} className="flex flex-col gap-4">
+                  <input
+                    type="text"
+                    placeholder="Homework Title"
+                    value={hwTitle}
+                    onChange={(e) => setHwTitle(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700"
+                  />
+                  <select
+                    value={hwQuizId}
+                    onChange={(e) => setHwQuizId(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700"
+                  >
+                    <option value="">Select Quiz</option>
+                    <option value="scientific-notation">Scientific Notation (Built-in)</option>
+                    <option value="logic">Introduction to Logic (Built-in)</option>
+                    <option value="math-foundations">Mathematical Foundations (Built-in)</option>
+                    {myQuizzes.map(q => (
+                      <option key={q.id} value={q.id}>{q.title}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    value={hwDueDate}
+                    onChange={(e) => setHwDueDate(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700"
+                  />
+                  <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-purple-700">
+                    Assign Homework
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Check className="text-teal-500" /> Assigned Quizzes & Homework ({classData.homeworks?.length || 0})
+            </h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              {classData.homeworks && classData.homeworks.length > 0 ? (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {classData.homeworks.map((hw: any, idx: number) => {
+                    const isCompleted = !isTeacher && submissions.some(sub => sub.studentId === user?.uid && sub.quizId === hw.quizId);
+                    return (
+                      <li key={idx} className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <p className="font-bold text-gray-900 dark:text-white text-lg">{hw.title}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Due: {hw.dueDate}</p>
+                          {isCompleted && (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-full mt-1">
+                              <Check className="w-3 h-3" /> Completed
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!isTeacher && (
+                            <>
+                              <QuizDownloadButton
+                                quizId={hw.quizId}
+                                quizTitle={hw.title}
+                                compact
+                              />
+                              <button
+                                onClick={() => {
+                                  localStorage.setItem('activeTeacherId', classData.teacherId);
+                                  navigate(`/quiz/${hw.quizId}`);
+                                }}
+                                className="bg-teal-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-teal-700 transition-colors shadow-sm"
+                              >
+                                {isCompleted ? 'Retake Quiz' : 'Take Quiz'}
+                              </button>
+                            </>
+                          )}
+                          {isTeacher && (
+                            <button
+                              onClick={() => handleDeleteHomework(hw)}
+                              className="bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No quizzes or homework assigned yet.</p>
+              )}
+            </div>
+          </div>
+
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="text-blue-500" /> Members ({myStudents.length})
           </h2>
@@ -237,7 +413,6 @@ export default function ClassPage() {
                 <div className="flex gap-4">
                   <input
                     type="email"
-                    list="student-emails-list"
                     placeholder={t('teacher.student_email_placeholder')}
                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     value={emailInput}
@@ -247,11 +422,6 @@ export default function ClassPage() {
                     }}
                     required
                   />
-                  <datalist id="student-emails-list">
-                    {allStudentEmails.map(email => (
-                      <option key={email} value={email} />
-                    ))}
-                  </datalist>
                   <button
                     type="submit"
                     disabled={addingStudent}
@@ -289,12 +459,22 @@ export default function ClassPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       {isTeacher && (
                         <>
                           <span className={`text-xs px-2 py-1 rounded-full font-bold ${s.registered ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
                             {s.registered ? t('teacher.registered') : t('teacher.pending')}
                           </span>
+                          {s.registered && s.id && (
+                            <button
+                              onClick={() => exportStudentPDF(s.id, s.realName)}
+                              title="Download PDF Report"
+                              className="flex items-center gap-1 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 text-sm font-medium px-2 py-1 bg-teal-50 dark:bg-teal-900/30 rounded-md transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              Report
+                            </button>
+                          )}
                           <button
                             onClick={() => handleExpelStudent(s.email)}
                             className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium px-2 py-1 bg-red-50 dark:bg-red-900/30 rounded-md transition-colors"

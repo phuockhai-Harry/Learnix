@@ -1,18 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, updateDoc, arrayUnion, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../auth';
 import { useLanguage } from '../i18n';
 import { Link } from 'react-router-dom';
-import { PlayCircle, Trophy, BarChart3, Edit3, Bell, Flame, Award, Users } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { lessons } from '../data/lessons';
+import { 
+  PlayCircle, Trophy, BarChart3, Flame, Award, Users, 
+  AlertCircle, MessageCircle, FileText, WifiOff, RefreshCw, 
+  Bot, ArrowRight, Sparkles, BookOpen, Calendar, ChevronRight, Crown,
+  Cloud, Target, CheckCircle2
+} from 'lucide-react';
+import { getLessons } from '../data/lessons';
 import { BADGES } from '../data/badges';
+import { HomeworkChat } from '../components/HomeworkChat';
+import { calculateStreak } from '../lib/streak';
+import { useToast } from '../context/ToastContext';
+import { RecentActivityFeed } from '../components/RecentActivityFeed';
+import { 
+  subscribePersonalizedLearningPath, 
+  initializeStudentLearningPath, 
+  PersonalizedLearningPath 
+} from '../services/progressSyncService';
+import { OfflineQuizPracticeHub } from '../components/OfflineQuizPracticeHub';
 
 export default function StudentDashboard() {
   const { user, profile } = useAuth();
-  const { t } = useLanguage();
-  const [publicQuizzes, setPublicQuizzes] = useState<any[]>([]);
+  const { t, language } = useLanguage();
+  const { isOnline, pendingSyncCount, triggerManualSync } = useToast();
+  const isVi = language === 'vi';
+
   const [mySubmissions, setMySubmissions] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,24 +36,20 @@ export default function StudentDashboard() {
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
+  const [homeworks, setHomeworks] = useState<any[]>([]);
+  const [activeChatHomework, setActiveChatHomework] = useState<any | null>(null);
+  const [learningPath, setLearningPath] = useState<PersonalizedLearningPath | null>(null);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
+  const [syncPulse, setSyncPulse] = useState(false);
+
+  const streakInfo = calculateStreak(profile, mySubmissions);
+  const accurateStreak = streakInfo.streak;
 
   useEffect(() => {
-    // Request notification permission for goal updates
     if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
       Notification.requestPermission();
     }
   }, []);
-
-  const sendGoalNotification = () => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(t('student.notify_goal'), {
-        body: t('student.notify_body'),
-        icon: "/vite.svg"
-      });
-    } else {
-      alert(`${t('student.notify_goal')} ${t('student.notify_body')}`);
-    }
-  };
 
   const handleJoinClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +72,7 @@ export default function StudentDashboard() {
 
       if (classData.studentEmails && classData.studentEmails.includes(profile.email)) {
         setJoinCodeInput('');
-        return; // Already joined
+        return;
       }
 
       await updateDoc(doc(db, 'classes', classDoc.id), {
@@ -71,291 +83,678 @@ export default function StudentDashboard() {
       setJoinCodeInput('');
     } catch (error) {
       console.error(error);
-      setJoinError('Error joining class');
+      setJoinError('Lỗi khi tham gia lớp học');
     } finally {
       setJoining(false);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
+    if (!user) return;
+
+    let unsubSubmissions: () => void = () => {};
+    let unsubLearningPath: () => void = () => {};
+
+    const setupRealtimeSync = async () => {
       try {
+        let currentClasses: any[] = [];
         if (profile?.email) {
           const classesQ = query(collection(db, 'classes'), where('studentEmails', 'array-contains', profile.email));
           const classesSnap = await getDocs(classesQ);
-          setJoinedClasses(classesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+          currentClasses = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setJoinedClasses(currentClasses);
         }
 
-        const quizzesQuery = query(collection(db, 'quizzes'), where('isPublic', '==', true));
+        const quizzesQuery = query(collection(db, 'quizzes'), where('creatorId', '==', user.uid));
         const quizSnap = await getDocs(quizzesQuery);
-        const quizzesData = quizSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPublicQuizzes(quizzesData);
+        const quizzesData = quizSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
 
+        // Real-time synchronization for submissions across all devices
         const submissionsQuery = query(collection(db, 'submissions'), where('studentId', '==', user.uid));
-        const subSnap = await getDocs(submissionsQuery);
-        const subData = subSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        const chartedData = subData.map(sub => {
-          let title = 'Unknown Quiz';
-          if (lessons[sub.quizId as keyof typeof lessons]) {
-            title = lessons[sub.quizId as keyof typeof lessons].title;
-          } else {
-            const quiz = quizzesData.find(q => q.id === sub.quizId);
-            if (quiz) title = quiz.title;
+        unsubSubmissions = onSnapshot(submissionsQuery, (subSnap) => {
+          const subData = subSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+          
+          let allHws: any[] = [];
+          currentClasses.forEach(c => {
+            if (c.homeworks) {
+              allHws = [...allHws, ...c.homeworks.map((h: any) => ({ ...h, className: c.name }))];
+            }
+          });
+          
+          const todayDate = new Date();
+          const todayStr = todayDate.toISOString().split('T')[0];
+          const tomorrowDate = new Date();
+          tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+          const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+
+          for (let hw of allHws) {
+            hw.completed = subData.some(sub => sub.quizId === hw.quizId && (!sub.completedAt || new Date(sub.completedAt.toMillis()).toISOString().split('T')[0] <= hw.dueDate));
+            hw.overdue = !hw.completed && hw.dueDate < todayStr;
+            hw.dueSoon = !hw.completed && !hw.overdue && (hw.dueDate === todayStr || hw.dueDate === tomorrowStr);
           }
+          setHomeworks(allHws);
+          
+          const localizedLessons = getLessons(language);
+          
+          const chartedData = subData.map(sub => {
+            let title = 'Unknown Quiz';
+            if (localizedLessons[sub.quizId as keyof typeof localizedLessons]) {
+              title = localizedLessons[sub.quizId as keyof typeof localizedLessons].title;
+            } else {
+              const quiz = quizzesData.find(q => q.id === sub.quizId);
+              if (quiz) title = quiz.title;
+            }
+            return {
+              ...sub,
+              quizTitle: title,
+            };
+          }).sort((a, b) => {
+            const tA = a.completedAt?.toMillis ? a.completedAt.toMillis() : 0;
+            const tB = b.completedAt?.toMillis ? b.completedAt.toMillis() : 0;
+            return tB - tA;
+          });
+          setMySubmissions(chartedData);
+          setLastSyncTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          setSyncPulse(true);
+          setTimeout(() => setSyncPulse(false), 2000);
+          setLoading(false);
+        }, (err) => {
+          console.warn("Submissions real-time listener notice:", err);
+          setLoading(false);
+        });
+
+        // Real-time listener for personalized learning path
+        unsubLearningPath = subscribePersonalizedLearningPath(user.uid, (path) => {
+          if (!path && profile?.grade) {
+            initializeStudentLearningPath(user.uid, profile.grade, isVi).then(newPath => {
+              setLearningPath(newPath);
+            });
+          } else {
+            setLearningPath(path);
+          }
+        });
+
+        // Query all registered students from users collection to rank every user
+        const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
+        const studentsSnap = await getDocs(studentsQuery);
+        const allStudents = studentsSnap.docs.map(docSnap => {
+          const d = docSnap.data();
+          const realName = d.realName || d.codeName || (isVi ? 'Học sinh' : 'Student');
           return {
-            ...sub,
-            quizTitle: title,
+            id: docSnap.id,
+            realName: realName,
+            codeName: d.codeName,
+            name: realName,
+            score: typeof d.xp === 'number' ? d.xp : 0,
+            isCurrent: docSnap.id === user.uid
           };
+        }).sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return a.realName.localeCompare(b.realName);
         });
-        setMySubmissions(chartedData);
 
-        // Fetch all submissions for leaderboard
-        const allSubsQuery = query(collection(db, 'submissions'), orderBy('score', 'desc'), limit(10));
-        const allSubsSnap = await getDocs(allSubsQuery);
-        const topScores = await Promise.all(allSubsSnap.docs.map(async (docSnap) => {
-           const sData = docSnap.data();
-           let name = 'Student';
-           try {
-             const userDocRef = doc(db, 'users', sData.studentId);
-             const uSnap = await getDoc(userDocRef);
-             if (uSnap.exists()) {
-               const uData = uSnap.data();
-               name = uData.realName || uData.codeName || 'Student';
-             }
-           } catch(e) {}
-           return { id: docSnap.id, score: sData.score, name };
-        }));
-        
-        // Deduplicate and aggregate scores per student
-        const aggregated: Record<string, number> = {};
-        topScores.forEach(ts => {
-           aggregated[ts.name] = (aggregated[ts.name] || 0) + ts.score;
-        });
-        const leaderArr = Object.keys(aggregated).map(name => ({ name, score: aggregated[name] })).sort((a,b) => b.score - a.score).slice(0, 5);
-        setLeaderboard(leaderArr);
-
+        setLeaderboard(allStudents);
       } catch (err) {
-        console.error(err);
-      } finally {
+        console.error("Error setting up real-time student data sync:", err);
         setLoading(false);
       }
     };
-    fetchData();
-  }, [user]);
 
-  if (loading) return <div className="text-center py-10">{t('student.loading')}</div>;
+    setupRealtimeSync();
 
-  const isNewUser = mySubmissions.length === 0 && (!profile?.earnedBadges || profile.earnedBadges.length === 0);
+    return () => {
+      unsubSubmissions();
+      unsubLearningPath();
+    };
+  }, [user, language, profile?.grade, isVi]);
 
-  if (isNewUser) {
+  if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-20 flex flex-col items-center justify-center text-center space-y-8">
-        <div className="w-32 h-32 bg-teal-100 dark:bg-teal-900/30 text-teal-500 rounded-full flex items-center justify-center mb-4">
-          <Award className="w-16 h-16 opacity-50" />
-        </div>
-        <h1 className="text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-          Welcome to your <span className="text-teal-600 dark:text-teal-400">Blank Slate</span>, {profile?.realName}!
-        </h1>
-        <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl">
-          You haven't completed any quizzes yet. No streaks, no completions, no badges. It's time to start your learning journey and build up your profile!
-        </p>
-        <div className="pt-8">
-          <Link to="/explore" className="inline-flex items-center space-x-3 bg-teal-600 text-white px-8 py-4 rounded-2xl font-bold text-xl hover:bg-teal-700 transition-all shadow-lg border-b-4 border-teal-800 active:border-b-0 active:translate-y-1">
-            <span>Explore Lessons</span>
-            <PlayCircle className="w-6 h-6" />
-          </Link>
-        </div>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
       </div>
     );
   }
 
+  const avgScore = mySubmissions.length > 0 
+    ? Math.round(mySubmissions.reduce((acc, curr) => acc + curr.score, 0) / mySubmissions.length) 
+    : 0;
+
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
-      <div className="bg-gradient-to-br from-teal-500 to-cyan-600 p-8 sm:p-12 rounded-[2rem] shadow-lg border-b-[6px] border-teal-700 text-white relative overflow-hidden">
-        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-black mb-3 drop-shadow-sm">{t('student.welcome')} {profile?.realName}!</h1>
-            <p className="text-teal-50 text-lg font-medium">{t('student.subtitle')}</p>
+    <div className="space-y-8 pb-12 max-w-7xl mx-auto">
+      {/* Active Homework AI Chat Modal */}
+      {activeChatHomework && (
+        <HomeworkChat
+          homework={activeChatHomework}
+          gradeLevel={profile?.grade || 6}
+          onClose={() => setActiveChatHomework(null)}
+        />
+      )}
+
+      {/* Top Banner & Quick Shortcuts */}
+      <div className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white p-6 sm:p-8 rounded-[2rem] shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+              <span>{isVi ? `Khối lớp ${profile?.grade || 6}` : `Grade ${profile?.grade || 6}`}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-bold text-teal-100">
+              <span className={`w-2 h-2 rounded-full bg-emerald-400 ${syncPulse ? 'animate-ping' : ''}`}></span>
+              <Cloud className="w-3.5 h-3.5 text-emerald-300" />
+              <span>{isVi ? 'Đồng bộ đám mây đa thiết bị' : 'Cloud Synced'} ({lastSyncTime})</span>
+            </div>
           </div>
-          <div className="mt-4 sm:mt-0 flex flex-wrap items-center gap-3">
-            {profile?.xp !== undefined && (
-              <div className="flex items-center space-x-2 bg-indigo-500/20 hover:bg-indigo-500/30 backdrop-blur-md border border-indigo-400/50 text-indigo-100 px-4 py-3 rounded-2xl transition-all shadow-sm">
-                <span className="font-black text-xl">{profile.xp} XP</span>
-              </div>
-            )}
-            {profile?.streakCount !== undefined && profile.streakCount > 0 && (
-              <div className="flex items-center space-x-2 bg-orange-500/20 hover:bg-orange-500/30 backdrop-blur-md border border-orange-400/50 text-orange-100 px-4 py-3 rounded-2xl transition-all shadow-sm">
-                <Flame className="w-6 h-6 text-orange-400" />
-                <span className="font-bold text-lg">{profile.streakCount} Day Streak</span>
-              </div>
-            )}
-            <button onClick={sendGoalNotification} className="p-3 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 text-white rounded-2xl transition-all shadow-sm active:scale-95" title={t('student.notify_reminders')}>
-               <Bell className="w-6 h-6" />
-            </button>
-          </div>
+          <h1 className="text-2xl sm:text-4xl font-black">
+            {t('student.welcome')} {profile?.codeName || profile?.realName || 'Student'}! 👋
+          </h1>
+          <p className="text-teal-100 text-sm font-medium">
+            {isVi 
+              ? 'Tiếp tục luyện tập các bài học tương tác và duy trì chuỗi học tập hàng ngày!' 
+              : 'Keep completing interactive quizzes and growing your study streak!'}
+          </p>
         </div>
-        
-        <div className="mt-8 relative z-10 flex space-x-4">
-          <Link to="/quiz/create" className="flex items-center space-x-2 bg-white text-teal-700 px-6 py-3 rounded-2xl font-bold hover:bg-gray-50 transition-all border-b-4 border-gray-200 active:border-b-0 active:translate-y-1 shadow-sm">
-            <Edit3 className="w-5 h-5" />
-            <span>{t('student.create_quiz')}</span>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/practice"
+            className="flex items-center gap-2 bg-white text-teal-800 px-5 py-3 rounded-2xl font-black shadow-md hover:bg-teal-50 transition-all hover:scale-105 active:scale-95 text-sm"
+          >
+            <PlayCircle className="w-4 h-4 text-teal-600" />
+            <span>{isVi ? 'Luyện tập ngay' : 'Practice Now'}</span>
+          </Link>
+          <Link
+            to="/reports"
+            className="flex items-center gap-2 bg-teal-700/80 hover:bg-teal-800 text-white px-5 py-3 rounded-2xl font-black shadow-md transition-all hover:scale-105 active:scale-95 text-sm border border-teal-400/40"
+          >
+            <FileText className="w-4 h-4" />
+            <span>{isVi ? 'Báo cáo Học tập' : 'Student Reports'}</span>
           </Link>
         </div>
-        {/* Decorative background shapes */}
-        <div className="absolute -right-12 -top-12 w-64 h-64 bg-white opacity-10 rounded-full blur-2xl"></div>
-        <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-teal-900 opacity-20 rounded-full blur-xl"></div>
       </div>
 
+      {/* Offline Status Banner */}
+      {!isOnline && (
+        <div 
+          id="student-offline-status-banner"
+          className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border-2 border-amber-300 dark:border-amber-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <WifiOff className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-amber-900 dark:text-amber-200">
+                {isVi ? 'Bạn đang ở Chế độ Ngoại tuyến (Offline)' : 'You are working in Offline Mode'}
+              </p>
+              <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
+                {isVi 
+                  ? 'Mọi bài làm và điểm số được lưu an toàn trên máy và sẽ tự động đồng bộ khi có kết nối trở lại.'
+                  : 'All your answers and XP are cached locally and will automatically sync once reconnected.'}
+              </p>
+            </div>
+          </div>
+          {pendingSyncCount > 0 && (
+            <button
+              onClick={triggerManualSync}
+              className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>{isVi ? `Đồng bộ (${pendingSyncCount})` : `Sync (${pendingSyncCount})`}</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* PWA Offline Quiz Download & Practice Section */}
+      <OfflineQuizPracticeHub />
+
+      {/* 4 Core Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
+          <div className="p-3 bg-teal-50 dark:bg-teal-900/40 rounded-xl text-teal-600 shrink-0">
+            <Trophy className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-400 truncate">{t('student.total_xp')}</p>
+            <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{profile?.xp || 0}</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
+          <div className="p-3 bg-orange-50 dark:bg-orange-900/40 rounded-xl text-orange-600 shrink-0">
+            <Flame className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-400 truncate">{t('student.streak')}</p>
+            <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{accurateStreak} {isVi ? 'ngày' : 'days'}</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
+          <div className="p-3 bg-pink-50 dark:bg-pink-900/40 rounded-xl text-pink-600 shrink-0">
+            <Award className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-400 truncate">{t('student.my_badges')}</p>
+            <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{(profile?.earnedBadges || []).length} / {BADGES.length}</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 rounded-xl text-blue-600 shrink-0">
+            <BarChart3 className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-gray-400 truncate">{isVi ? 'Điểm trung bình' : 'Avg Score'}</p>
+            <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{avgScore}%</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Homework Section (if any assignments exist) */}
+      {homeworks.length > 0 && (
+        <section className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 p-6 rounded-[2rem] border border-indigo-100 dark:border-indigo-900/50 shadow-xs">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-black text-indigo-900 dark:text-indigo-200 flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-indigo-600" />
+              <span>{t('student.homework_title')}</span>
+            </h2>
+            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              {homeworks.filter(h => !h.completed).length} {isVi ? 'bài cần làm' : 'due'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {homeworks.map((hw, idx) => (
+              <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-indigo-100 dark:border-gray-700 flex flex-col justify-between gap-3.5">
+                <div>
+                  <div className="flex justify-between items-start mb-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300">
+                      {hw.className}
+                    </span>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                      hw.completed ? 'bg-green-100 text-green-700' : hw.overdue ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {hw.completed ? (isVi ? 'Đã nộp' : 'Done') : hw.overdue ? (isVi ? 'Quá hạn (-100 XP)' : 'Overdue (-100 XP)') : `${isVi ? 'Hạn' : 'Due'}: ${hw.dueDate}`}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-black text-gray-900 dark:text-white">{hw.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{hw.description}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Link
+                    to={`/quiz/${hw.quizId}`}
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-center rounded-xl shadow-xs text-xs transition-colors"
+                  >
+                    {isVi ? 'Làm bài' : 'Take Quiz'}
+                  </Link>
+                  <button
+                    onClick={() => setActiveChatHomework(hw)}
+                    className="px-3 py-2.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 font-bold rounded-xl hover:bg-indigo-100 transition-colors flex items-center gap-1 text-xs"
+                    title="Ask AI Tutor"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="hidden sm:inline">AI Tutor</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Main Grid: Left side Activity & Study Hub; Right side Classes & Leaderboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <section>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 mb-6">
-              <div className="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-xl text-teal-600"><PlayCircle className="w-6 h-6" /></div>
-              {t('student.available_quizzes')}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {publicQuizzes.map(quiz => (
-                <div key={quiz.id} className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-gray-100 dark:border-gray-700 hover:border-teal-400 dark:hover:border-teal-500 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{quiz.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium h-10 line-clamp-2">{t('student.test_knowledge')}</p>
-                  <Link to={`/quiz/${quiz.id}`} className="flex items-center justify-center space-x-2 text-sm font-bold text-white bg-teal-500 hover:bg-teal-600 w-full py-3 rounded-2xl border-b-4 border-teal-700 active:border-b-0 active:translate-y-1 transition-all">
-                    <span>{t('student.start_challenge')}</span>
-                    <PlayCircle className="w-4 h-4" />
-                  </Link>
-                </div>
-              ))}
-              {publicQuizzes.length === 0 && (
-                <div className="col-span-2 bg-gray-50 dark:bg-gray-800/50 p-8 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-center">
-                  <p className="text-gray-500 dark:text-gray-400 font-bold">{t('student.no_quizzes')}</p>
-                </div>
-              )}
-            </div>
-          </section>
-          
-          <section>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 mb-6">
-              <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-xl text-pink-600"><Award className="w-6 h-6" /></div>
-              My Badges
-            </h2>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-gray-100 dark:border-gray-700">
-               {profile?.earnedBadges && profile.earnedBadges.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {profile.earnedBadges.map(badgeId => {
-                       const b = BADGES.find(x => x.id === badgeId);
-                       if (!b) return null;
-                       return (
-                         <div key={b.id} className={`flex flex-col items-center text-center p-4 rounded-2xl border-2 shadow-sm transition-transform hover:scale-105 ${b.color}`}>
-                           <span className="text-4xl mb-2 drop-shadow-sm">{b.icon}</span>
-                           <span className="font-bold text-sm leading-tight">{b.name}</span>
-                         </div>
-                       );
-                    })}
+          {/* Real-time Personalized Learning Path Card */}
+          {learningPath && (
+            <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-[2rem] border border-indigo-700/60 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 bg-indigo-700/60 rounded-xl text-amber-300">
+                    <Target className="w-5 h-5" />
                   </div>
-               ) : (
-                  <p className="text-gray-500 dark:text-gray-400 font-medium">Earn badges by completing quizzes!</p>
-               )}
-            </div>
-          </section>
+                  <div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-300">
+                      {isVi ? 'Lộ trình học tập cá nhân hóa' : 'Personalized Learning Path'}
+                    </span>
+                    <h3 className="text-lg font-black">{learningPath.targetGoal}</h3>
+                  </div>
+                </div>
+                <Link
+                  to="/explore"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 w-fit border border-white/10 transition-colors"
+                >
+                  <span>{isVi ? 'Xem toàn bộ lộ trình' : 'Full Roadmap'}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
 
-          <section>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 mb-6">
-              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl text-yellow-600"><Trophy className="w-6 h-6" /></div>
-              {t('student.leaderboard')}
-            </h2>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-gray-100 dark:border-gray-700">
-               {leaderboard.length > 0 ? (
-                  <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                    {leaderboard.map((student, idx) => (
-                      <li key={idx} className="py-4 flex justify-between items-center group hover:bg-gray-50 dark:hover:bg-gray-750 px-4 -mx-4 rounded-2xl transition-colors">
-                        <div className="flex items-center space-x-4">
-                          <span className={`w-10 h-10 flex items-center justify-center rounded-2xl text-sm font-black shadow-sm ${idx === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : idx === 1 ? 'bg-gray-100 text-gray-600 border border-gray-200' : idx === 2 ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-gray-50 text-gray-400 dark:bg-gray-700'}`}>
-                            {idx + 1}
-                          </span>
-                          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{student.name}</span>
-                        </div>
-                        <span className="font-black text-teal-600 dark:text-teal-400 text-xl">{student.score} <span className="text-sm text-gray-400 font-bold">{t('student.pts')}</span></span>
-                      </li>
-                    ))}
-                  </ul>
-               ) : (
-                  <p className="text-gray-500 dark:text-gray-400 font-medium">{t('student.no_scores')}</p>
-               )}
+              <div className="space-y-2 mb-4 bg-black/20 p-3.5 rounded-2xl border border-white/5">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-indigo-200">{isVi ? 'Tiến độ hoàn thành lộ trình:' : 'Roadmap Progress:'}</span>
+                  <span className="text-amber-300 font-black">{learningPath.overallProgress}%</span>
+                </div>
+                <div className="w-full bg-black/40 rounded-full h-3 overflow-hidden p-0.5">
+                  <div 
+                    className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700"
+                    style={{ width: `${Math.max(5, learningPath.overallProgress)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Next upcoming milestone with quick start button */}
+              {(() => {
+                const nextMs = learningPath.milestones.find(m => !m.completed) || learningPath.milestones[0];
+                if (!nextMs) return null;
+                return (
+                  <div className="p-3.5 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[11px] text-indigo-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-300" />
+                        <span>{isVi ? 'Chặng tiếp theo cần vượt qua:' : 'Next Milestone:'}</span>
+                      </div>
+                      <p className="text-sm font-bold text-white truncate">{nextMs.title}</p>
+                    </div>
+                    <Link
+                      to={`/quiz/${nextMs.lessonId}`}
+                      className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-900 font-black text-xs shadow-sm transition-all flex items-center gap-1"
+                    >
+                      <PlayCircle className="w-3.5 h-3.5" />
+                      <span>{isVi ? 'Làm ngay' : 'Start'}</span>
+                    </Link>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Recent Activity Feed (Chronological list of completed quizzes and achieved goals) */}
+          <RecentActivityFeed submissions={mySubmissions} />
+
+          {/* Quick Study Hub - Clean cards pointing to dedicated pages */}
+          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
+                <PlayCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <span>{isVi ? 'Lối tắt Học tập Nhanh' : 'Quick Study Hub'}</span>
+              </h2>
+              <Link to="/explore" className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1">
+                <span>{isVi ? 'Xem tất cả' : 'View all'}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                to="/practice"
+                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
+              >
+                <div className="p-3 bg-teal-100 dark:bg-teal-900/40 rounded-xl text-teal-700 dark:text-teal-300 group-hover:scale-110 transition-transform shrink-0">
+                  <PlayCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors">
+                    {isVi ? 'Luyện tập Trắc nghiệm' : 'Practice Quizzes'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {isVi ? 'Toán học, Khoa học tự nhiên & Lập trình' : 'Math, Natural Sciences & Logic'}
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/tutor"
+                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
+              >
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-xl text-blue-700 dark:text-blue-300 group-hover:scale-110 transition-transform shrink-0">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                    {isVi ? 'Gia sư Gemini AI' : 'Gemini AI Tutor'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {isVi ? 'Hỏi bài, đố vui theo chủ đề & gợi ý từng bước' : 'Multi-turn interactive AI tutoring'}
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/flashcards"
+                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
+              >
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/40 rounded-xl text-purple-700 dark:text-purple-300 group-hover:scale-110 transition-transform shrink-0">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors">
+                    {isVi ? 'Thẻ ghi nhớ Từ vựng' : 'Flashcards'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {isVi ? 'Ôn tập định nghĩa và thuật ngữ cốt lõi' : 'Review definitions & key terms'}
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/planner"
+                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
+              >
+                <div className="p-3 bg-orange-100 dark:bg-orange-900/40 rounded-xl text-orange-700 dark:text-orange-300 group-hover:scale-110 transition-transform shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors">
+                    {isVi ? 'Lịch ôn thi & Kế hoạch' : 'Study Planner'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {isVi ? 'Lịch kiểm tra, mục tiêu ngày & bộ đếm' : 'Exam schedules, goals & timers'}
+                  </p>
+                </div>
+              </Link>
             </div>
           </section>
         </div>
 
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600"><Users className="w-6 h-6" /></div>
-              {t('student.my_classes')}
+        {/* Right Column: Classes, Leaderboard Podium, Parent Report Shortcut */}
+        <div className="space-y-6">
+          {/* My Classes */}
+          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
+            <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-blue-600" />
+              <span>{t('student.my_classes')}</span>
             </h2>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-gray-100 dark:border-gray-700">
-              <form onSubmit={handleJoinClass} className="flex flex-col gap-2 mb-6">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder={t('student.class_code_placeholder')}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    value={joinCodeInput}
-                    onChange={(e) => setJoinCodeInput(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={joining}
-                    className="bg-teal-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-teal-700 transition-colors disabled:opacity-50"
+
+            <form onSubmit={handleJoinClass} className="space-y-2 mb-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder={t('student.class_code_placeholder')}
+                  className="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase"
+                  value={joinCodeInput}
+                  onChange={(e) => setJoinCodeInput(e.target.value)}
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={joining}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
+                >
+                  {joining ? '...' : t('student.join')}
+                </button>
+              </div>
+              {joinError && <p className="text-red-500 text-xs font-medium">{joinError}</p>}
+            </form>
+
+            {joinedClasses.length > 0 ? (
+              <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                {joinedClasses.map((c, idx) => (
+                  <div key={c.id || idx} className="py-2.5 first:pt-0 last:pb-0">
+                    <Link to={`/class/${c.id}`} className="block group">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors truncate">
+                        {c.name}
+                      </p>
+                      <p className="text-[11px] text-gray-400">
+                        {t('student.teacher')}: {c.teacherName || 'Teacher'}
+                      </p>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 text-center py-2">
+                {isVi ? 'Chưa tham gia lớp nào. Hãy nhập mã lớp của giáo viên.' : 'Not joined any classes yet.'}
+              </p>
+            )}
+          </section>
+
+          {/* Leaderboard Podium Preview */}
+          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                <span>{isVi ? 'Bảng xếp hạng' : 'Leaderboard'}</span>
+              </h2>
+              <Link 
+                to="/achievements" 
+                className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5"
+              >
+                <span>{isVi ? `Tất cả (${leaderboard.length})` : `All (${leaderboard.length})`}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {leaderboard.length > 0 ? (
+              <div className="space-y-2.5">
+                {leaderboard.slice(0, 5).map((student, idx) => {
+                  const isCurrent = student.isCurrent;
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                        isCurrent 
+                          ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-300 dark:border-teal-700' 
+                          : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-700/60'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                          idx === 0 
+                            ? 'bg-yellow-100 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-300' 
+                            : idx === 1 
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' 
+                            : idx === 2 
+                            ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300'
+                            : 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className={`text-xs truncate ${isCurrent ? 'font-black text-teal-900 dark:text-teal-200' : 'font-bold text-gray-900 dark:text-gray-100'}`}>
+                          {student.realName} {isCurrent && `(${isVi ? 'Bạn' : 'You'})`}
+                        </span>
+                      </div>
+                      <span className="text-xs font-black text-teal-600 dark:text-teal-400 shrink-0">
+                        {student.score} pts
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* If user is ranked outside top 5, display their current rank */}
+                {(() => {
+                  const myRankIndex = leaderboard.findIndex(s => s.isCurrent);
+                  if (myRankIndex >= 5) {
+                    const myRank = myRankIndex + 1;
+                    return (
+                      <div className="pt-2 border-t border-gray-100 dark:border-gray-700/60">
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <span className="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs font-black shrink-0">
+                              #{myRank}
+                            </span>
+                            <span className="text-xs font-black text-teal-900 dark:text-teal-200 truncate">
+                              {profile?.realName || profile?.codeName} ({isVi ? 'Bạn' : 'You'})
+                            </span>
+                          </div>
+                          <span className="text-xs font-black text-teal-600 dark:text-teal-400 shrink-0">
+                            {profile?.xp || 0} pts
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 text-center py-2 font-medium">
+                {t('student.no_scores')}
+              </p>
+            )}
+          </section>
+
+          {/* Achievements & Badges Showcase */}
+          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs space-y-3.5">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Award className="w-5 h-5 text-pink-500" />
+                <span>{isVi ? 'Huy hiệu Đã Đạt' : 'Earned Badges'}</span>
+              </h2>
+              <Link 
+                to="/achievements" 
+                className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5"
+              >
+                <span>{(profile?.earnedBadges || []).length}/{BADGES.length}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {BADGES.slice(0, 4).map((badge) => {
+                const isEarned = (profile?.earnedBadges || []).includes(badge.id);
+                return (
+                  <div
+                    key={badge.id}
+                    className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
+                      isEarned
+                        ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/60 shadow-xs'
+                        : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800 opacity-40 grayscale'
+                    }`}
+                    title={isVi ? badge.descriptionVi : badge.description}
                   >
-                    {t('student.join')}
-                  </button>
-                </div>
-                {joinError && <p className="text-red-500 text-sm font-medium">{joinError}</p>}
-              </form>
-
-              {joinedClasses.length > 0 ? (
-                <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                  {joinedClasses.map((c, idx) => (
-                    <li key={idx} className="py-3">
-                      <Link to={`/class/${c.id}`} className="block group">
-                        <p className="font-bold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{c.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('student.teacher')}: {c.teacherName}</p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400 text-center font-medium">Not joined any classes yet.</p>
-              )}
+                    <span className="text-2xl mb-1">{badge.icon}</span>
+                    <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate w-full">
+                      {isVi ? badge.nameVi : badge.name}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600"><BarChart3 className="w-6 h-6" /></div>
-              {t('student.analytics')}
-            </h2>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border-2 border-gray-100 dark:border-gray-700">
-              {mySubmissions.length > 0 ? (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mySubmissions}>
-                      <XAxis dataKey="quizTitle" hide />
-                      <YAxis tick={{fontWeight: 'bold', fill: '#9ca3af'}} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{fill: 'rgba(20, 184, 166, 0.1)'}} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                      <Bar dataKey="score" fill="#0d9488" radius={[8, 8, 0, 0]} maxBarSize={40} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                  <Trophy className="w-16 h-16 mx-auto mb-4 text-gray-200 dark:text-gray-700" />
-                  <p className="font-bold">{t('student.complete_quizzes')}</p>
-                </div>
-              )}
+          {/* Academic Report Card */}
+          <div className="bg-gradient-to-br from-teal-900 to-emerald-950 text-white p-5 rounded-[2rem] shadow-xs space-y-3 border border-teal-800/60">
+            <div className="flex items-center gap-2 text-teal-300">
+              <FileText className="w-5 h-5" />
+              <h3 className="text-sm font-black uppercase tracking-wider">
+                {isVi ? 'Báo cáo Học tập' : 'Student Progress Reports'}
+              </h3>
             </div>
-          </section>
+            <p className="text-xs text-teal-100 leading-relaxed">
+              {isVi 
+                ? 'Xem nhận xét định tính chi tiết từ giáo viên, tiêu chuẩn học tập và xuất báo cáo kết quả PDF chính thức.'
+                : 'Access teacher evaluations, curriculum standards, and official student PDF progress reports.'}
+            </p>
+            <Link
+              to="/reports"
+              className="inline-flex items-center justify-between w-full px-3.5 py-2 bg-white text-teal-950 font-black rounded-xl text-xs hover:bg-teal-50 transition-colors shadow-xs"
+            >
+              <span>{isVi ? 'Mở Báo cáo Học tập' : 'View Reports'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

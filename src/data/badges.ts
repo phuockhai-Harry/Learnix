@@ -1,32 +1,34 @@
 export interface Badge {
   id: string;
   name: string;
+  nameVi?: string;
   description: string;
+  descriptionVi?: string;
   icon: string; // lucide icon name or emoji
   color: string;
 }
 
 export const BADGES: Badge[] = [
-  { id: 'first_blood', name: 'First Steps', description: 'Complete your first quiz.', icon: '🎯', color: 'bg-blue-100 text-blue-600 border-blue-200' },
-  { id: 'learner_5', name: 'Learner', description: 'Complete 5 quizzes.', icon: '📚', color: 'bg-green-100 text-green-600 border-green-200' },
-  { id: 'scholar_10', name: 'Scholar', description: 'Complete 10 quizzes.', icon: '🎓', color: 'bg-purple-100 text-purple-600 border-purple-200' },
-  { id: 'brainiac_25', name: 'Brainiac', description: 'Complete 25 quizzes.', icon: '🧠', color: 'bg-pink-100 text-pink-600 border-pink-200' },
-  { id: 'genius_50', name: 'Genius', description: 'Complete 50 quizzes.', icon: '⚡', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
-  { id: 'streak_3', name: 'Consistent', description: 'Reach a 3-day streak.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
-  { id: 'streak_7', name: 'Dedicated', description: 'Reach a 7-day streak.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
-  { id: 'streak_14', name: 'Unstoppable', description: 'Reach a 14-day streak.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
-  { id: 'streak_30', name: 'Legendary Habit', description: 'Reach a 30-day streak.', icon: '🌋', color: 'bg-red-100 text-red-600 border-red-200' },
-  { id: 'perfect_1', name: 'Flawless', description: 'Get a perfect score on a quiz.', icon: '🌟', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
-  { id: 'perfect_5', name: 'Perfectionist', description: 'Get 5 perfect scores.', icon: '⭐', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
-  { id: 'perfect_10', name: 'Unbeatable', description: 'Get 10 perfect scores.', icon: '🏆', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
-  { id: 'xp_1000', name: 'Rising Star', description: 'Earn 1,000 XP.', icon: '✨', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
-  { id: 'xp_5000', name: 'High Achiever', description: 'Earn 5,000 XP.', icon: '🚀', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
-  { id: 'xp_10000', name: 'Mastermind', description: 'Earn 10,000 XP.', icon: '👑', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
-  { id: 'night_owl', name: 'Night Owl', description: 'Complete a quiz after 10 PM.', icon: '🦉', color: 'bg-gray-800 text-gray-200 border-gray-700' },
-  { id: 'early_bird', name: 'Early Bird', description: 'Complete a quiz before 7 AM.', icon: '🌅', color: 'bg-orange-50 text-orange-500 border-orange-200' },
-  { id: 'speed_demon', name: 'Speed Demon', description: 'Finish a quiz very quickly.', icon: '⚡', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
-  { id: 'weekend_warrior', name: 'Weekend Warrior', description: 'Complete a quiz on a weekend.', icon: '🎉', color: 'bg-teal-100 text-teal-600 border-teal-200' },
-  { id: 'explorer', name: 'Explorer', description: 'Try different subjects.', icon: '🗺️', color: 'bg-emerald-100 text-emerald-600 border-emerald-200' }
+  { id: 'first_blood', name: 'First Steps', nameVi: 'Bước Đầu Tiên', description: 'Complete your first quiz.', descriptionVi: 'Hoàn thành bài tập đầu tiên.', icon: '🎯', color: 'bg-blue-100 text-blue-600 border-blue-200' },
+  { id: 'learner_5', name: 'Learner', nameVi: 'Học Viên', description: 'Complete 5 quizzes.', descriptionVi: 'Hoàn thành 5 bài tập.', icon: '📚', color: 'bg-green-100 text-green-600 border-green-200' },
+  { id: 'scholar_10', name: 'Scholar', nameVi: 'Học Giả', description: 'Complete 10 quizzes.', descriptionVi: 'Hoàn thành 10 bài tập.', icon: '🎓', color: 'bg-purple-100 text-purple-600 border-purple-200' },
+  { id: 'brainiac_25', name: 'Brainiac', nameVi: 'Thiên Tài', description: 'Complete 25 quizzes.', descriptionVi: 'Hoàn thành 25 bài tập.', icon: '🧠', color: 'bg-pink-100 text-pink-600 border-pink-200' },
+  { id: 'genius_50', name: 'Genius', nameVi: 'Bác Học', description: 'Complete 50 quizzes.', descriptionVi: 'Hoàn thành 50 bài tập.', icon: '⚡', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
+  { id: 'streak_3', name: 'Consistent', nameVi: 'Kiên Trì', description: 'Reach a 3-day streak.', descriptionVi: 'Đạt chuỗi học 3 ngày liên tiếp.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
+  { id: 'streak_7', name: 'Dedicated', nameVi: 'Tận Tâm', description: 'Reach a 7-day streak.', descriptionVi: 'Đạt chuỗi học 7 ngày liên tiếp.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
+  { id: 'streak_14', name: 'Unstoppable', nameVi: 'Không Thể Cản Bước', description: 'Reach a 14-day streak.', descriptionVi: 'Đạt chuỗi học 14 ngày liên tiếp.', icon: '🔥', color: 'bg-orange-100 text-orange-600 border-orange-200' },
+  { id: 'streak_30', name: 'Legendary Habit', nameVi: 'Thói Quen Huyền Thoại', description: 'Reach a 30-day streak.', descriptionVi: 'Đạt chuỗi học 30 ngày liên tiếp.', icon: '🌋', color: 'bg-red-100 text-red-600 border-red-200' },
+  { id: 'perfect_1', name: 'Flawless', nameVi: 'Hoàn Hảo', description: 'Get a perfect score on a quiz.', descriptionVi: 'Đạt điểm tuyệt đối trong 1 bài tập.', icon: '🌟', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
+  { id: 'perfect_5', name: 'Perfectionist', nameVi: 'Người Cầu Toàn', description: 'Get 5 perfect scores.', descriptionVi: 'Đạt 5 điểm tuyệt đối.', icon: '⭐', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
+  { id: 'perfect_10', name: 'Unbeatable', nameVi: 'Bất Bại', description: 'Get 10 perfect scores.', descriptionVi: 'Đạt 10 điểm tuyệt đối.', icon: '🏆', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
+  { id: 'xp_1000', name: 'Rising Star', nameVi: 'Ngôi Sao Đang Lên', description: 'Earn 1,000 XP.', descriptionVi: 'Đạt 1,000 XP.', icon: '✨', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
+  { id: 'xp_5000', name: 'High Achiever', nameVi: 'Thành Tích Xuất Sắc', description: 'Earn 5,000 XP.', descriptionVi: 'Đạt 5,000 XP.', icon: '🚀', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
+  { id: 'xp_10000', name: 'Mastermind', nameVi: 'Bậc Thầy', description: 'Earn 10,000 XP.', descriptionVi: 'Đạt 10,000 XP.', icon: '👑', color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
+  { id: 'night_owl', name: 'Night Owl', nameVi: 'Cú Đêm', description: 'Complete a quiz after 10 PM.', descriptionVi: 'Hoàn thành bài tập sau 10 giờ tối.', icon: '🦉', color: 'bg-gray-800 text-gray-200 border-gray-700' },
+  { id: 'early_bird', name: 'Early Bird', nameVi: 'Chim Sớm', description: 'Complete a quiz before 7 AM.', descriptionVi: 'Hoàn thành bài tập trước 7 giờ sáng.', icon: '🌅', color: 'bg-orange-50 text-orange-500 border-orange-200' },
+  { id: 'speed_demon', name: 'Speed Demon', nameVi: 'Thần Tốc', description: 'Finish a quiz very quickly.', descriptionVi: 'Hoàn thành bài tập cực nhanh.', icon: '⚡', color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
+  { id: 'weekend_warrior', name: 'Weekend Warrior', nameVi: 'Chiến Binh Cuối Tuần', description: 'Complete a quiz on a weekend.', descriptionVi: 'Hoàn thành bài tập vào cuối tuần.', icon: '🎉', color: 'bg-teal-100 text-teal-600 border-teal-200' },
+  { id: 'explorer', name: 'Explorer', nameVi: 'Nhà Thám Hiểm', description: 'Try different subjects.', descriptionVi: 'Khám phá nhiều chủ đề khác nhau.', icon: '🗺️', color: 'bg-emerald-100 text-emerald-600 border-emerald-200' }
 ];
 
 export function checkNewBadges(

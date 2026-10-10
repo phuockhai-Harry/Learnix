@@ -3,12 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        var origConsoleError = console.error;
+        console.error = function() {
+          var str = Array.prototype.map.call(arguments, function(arg) {
+            return String(arg && arg.message ? arg.message : (arg && arg.stack ? arg.stack : arg));
+          }).join(' ');
+          if (
+            str.indexOf('WebSocket closed without opened') !== -1 ||
+            (str.indexOf('[vite]') !== -1 && str.indexOf('WebSocket') !== -1) ||
+            str.indexOf('auth/popup-closed-by-user') !== -1 ||
+            str.indexOf('auth/cancelled-popup-request') !== -1
+          ) {
+            return;
+          }
+          return origConsoleError.apply(console, arguments);
+        };
+
+        function isViteWsError(err) {
+          var msg = err && (err.message || err.reason || String(err));
+          return typeof msg === 'string' && (
+            msg.indexOf('WebSocket closed without opened') !== -1 ||
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('@vite/client') !== -1 ||
+            msg.indexOf('ws:') !== -1
+          );
+        }
+        window.addEventListener('unhandledrejection', function(e) {
+          if (isViteWsError(e.reason)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+        window.addEventListener('error', function(e) {
+          if (isViteWsError(e.error || e.message)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+      })();
+    </script>
     <title>Learnix</title>
     <meta name="description" content="An interactive learning app with gamified challenges, AI-driven study paths, and live classroom assessments." />
     <meta property="og:title" content="Learnix" />
     <meta property="og:description" content="An interactive learning app with gamified challenges, AI-driven study paths, and live classroom assessments." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Learnix" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">

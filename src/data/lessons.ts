@@ -1,107 +1,207 @@
-export const lessons = {
-  'scientific-notation': {
-    id: 'scientific-notation',
-    title: 'Scientific Notation',
-    questions: [
-      { question: 'What is 5.0 × 10^3 in standard form?', options: ['5000', '500', '50', '50000'], answerIndex: 0 },
-      { question: 'How is 0.0042 written in scientific notation?', options: ['4.2 × 10^-3', '4.2 × 10^3', '42 × 10^-4', '0.42 × 10^-2'], answerIndex: 0 },
-      { question: 'What is the exponent when 1,200,000 is written in scientific notation?', options: ['5', '6', '7', '4'], answerIndex: 1 },
-      { question: 'What is 3.5 × 10^-2 in standard form?', options: ['0.035', '0.35', '350', '0.0035'], answerIndex: 0 },
-      { question: 'Multiply: (2 × 10^3) × (4 × 10^2)', options: ['8 × 10^5', '8 × 10^6', '6 × 10^5', '8 × 10^1'], answerIndex: 0 },
-      { question: 'Divide: (9 × 10^5) / (3 × 10^2)', options: ['3 × 10^3', '6 × 10^3', '3 × 10^7', '3 × 10^2.5'], answerIndex: 0 },
-      { question: 'Which is larger: 4.5 × 10^4 or 9.9 × 10^3?', options: ['4.5 × 10^4', '9.9 × 10^3', 'They are equal', 'Cannot be determined'], answerIndex: 0 },
-      { question: 'Convert 150 to scientific notation.', options: ['1.5 × 10^2', '15 × 10^1', '1.5 × 10^3', '0.15 × 10^3'], answerIndex: 0 },
-      { question: 'What is 10^0?', options: ['1', '0', '10', '-1'], answerIndex: 0 },
-      { question: 'Add: (3 × 10^4) + (2 × 10^4)', options: ['5 × 10^4', '5 × 10^8', '6 × 10^4', '1.5 × 10^4'], answerIndex: 0 },
-      { question: 'Express 0.000007 in scientific notation.', options: ['7 × 10^-6', '7 × 10^-7', '70 × 10^-7', '0.7 × 10^-5'], answerIndex: 0 },
-      { question: 'What is (1.2 × 10^2) squared?', options: ['1.44 × 10^4', '1.44 × 10^2', '2.4 × 10^4', '1.2 × 10^4'], answerIndex: 0 },
-      { question: 'Subtract: (8 × 10^3) - (3 × 10^3)', options: ['5 × 10^3', '5 × 10^0', '11 × 10^3', '24 × 10^3'], answerIndex: 0 },
-      { question: 'In scientific notation, the coefficient must be...', options: ['Between 1 and 10 (excluding 10)', 'Between 0 and 100', 'Any integer', 'Greater than 10'], answerIndex: 0 },
-      { question: 'Write 8,000,000,000 in scientific notation.', options: ['8 × 10^9', '8 × 10^8', '80 × 10^8', '0.8 × 10^10'], answerIndex: 0 },
-    ]
-  },
-  'logic': {
-    id: 'logic',
-    title: 'Introduction to Logic',
-    questions: [
-      { question: 'In boolean logic, what does True AND False evaluate to?', options: ['False', 'True', 'Null', 'Undefined'], answerIndex: 0 },
-      { question: 'What does True OR False evaluate to?', options: ['True', 'False', 'Null', 'Undefined'], answerIndex: 0 },
-      { question: 'What is the symbol for the logical AND operation in many programming languages?', options: ['&&', '||', '!', '=='], answerIndex: 0 },
-      { question: 'What is the logical negation of True?', options: ['False', 'True', '0', 'None'], answerIndex: 0 },
-      { question: 'A truth table for an AND gate with 2 inputs has how many rows?', options: ['4', '2', '8', '16'], answerIndex: 0 },
-      { question: 'Which gate outputs True ONLY if both inputs are True?', options: ['AND', 'OR', 'XOR', 'NAND'], answerIndex: 0 },
-      { question: 'Which gate outputs True if exactly ONE input is True (but not both)?', options: ['XOR', 'OR', 'AND', 'NOR'], answerIndex: 0 },
-      { question: 'What does NOT(False) evaluate to?', options: ['True', 'False', 'Undefined', 'Error'], answerIndex: 0 },
-      { question: 'De Morgan\'s Law states that NOT(A AND B) is equivalent to...', options: ['NOT(A) OR NOT(B)', 'NOT(A) AND NOT(B)', 'A OR B', 'NOT(A OR B)'], answerIndex: 0 },
-      { question: 'If A is True and B is True, what is A XOR B?', options: ['False', 'True', 'Null', 'Undefined'], answerIndex: 0 },
-      { question: 'What is the result of True AND (False OR True)?', options: ['True', 'False', 'Null', 'Undefined'], answerIndex: 0 },
-      { question: 'Which logical operation is known as "inclusive or"?', options: ['OR', 'XOR', 'AND', 'NOR'], answerIndex: 0 },
-      { question: 'What is the binary representation of True in most systems?', options: ['1', '0', '-1', '2'], answerIndex: 0 },
-      { question: 'If P implies Q, and P is True, what can we say about Q?', options: ['Q is True', 'Q is False', 'Q is unknown', 'Q is paradox'], answerIndex: 0 },
-      { question: 'What does NAND stand for?', options: ['NOT AND', 'NULL AND', 'NEGATIVE AND', 'NO AND'], answerIndex: 0 },
-    ]
-  },
-  'math-foundations': {
-    id: 'math-foundations',
-    title: 'Mathematical Foundations',
-    questions: [
-      { question: 'What is the value of pi to two decimal places?', options: ['3.14', '3.16', '3.12', '3.18'], answerIndex: 0 },
-      { question: 'Solve for x: 2x + 5 = 15', options: ['5', '10', '7.5', '20'], answerIndex: 0 },
-      { question: 'What is the area of a rectangle with length 4 and width 5?', options: ['20', '9', '18', '40'], answerIndex: 0 },
-      { question: 'What is the square root of 144?', options: ['12', '14', '16', '10'], answerIndex: 0 },
-      { question: 'What is 15% of 200?', options: ['30', '15', '45', '20'], answerIndex: 0 },
-      { question: 'Solve: 3 * (4 + 5) - 2', options: ['25', '29', '15', '30'], answerIndex: 0 },
-      { question: 'If a triangle has a 90-degree angle, it is a...', options: ['Right triangle', 'Acute triangle', 'Obtuse triangle', 'Equilateral triangle'], answerIndex: 0 },
-      { question: 'What is 2 cubed?', options: ['8', '6', '4', '16'], answerIndex: 0 },
-      { question: 'Simplify the fraction: 16/24', options: ['2/3', '4/6', '1/2', '3/4'], answerIndex: 0 },
-      { question: 'What is the perimeter of a square with side length 6?', options: ['24', '36', '12', '18'], answerIndex: 0 },
-      { question: 'If y = 3x - 2, what is y when x = 4?', options: ['10', '12', '14', '8'], answerIndex: 0 },
-      { question: 'What is the sum of angles in a triangle?', options: ['180 degrees', '360 degrees', '90 degrees', '270 degrees'], answerIndex: 0 },
-      { question: 'Which prime number comes after 7?', options: ['11', '9', '13', '15'], answerIndex: 0 },
-      { question: 'What is 5! (5 factorial)?', options: ['120', '60', '24', '100'], answerIndex: 0 },
-      { question: 'If a circle has radius 3, what is its diameter?', options: ['6', '9', '3', '1.5'], answerIndex: 0 },
-    ]
-  },
-  'computer-science': {
-    id: 'computer-science',
-    title: 'Computer Science Core',
-    questions: [
-      { question: 'What does CPU stand for?', options: ['Central Processing Unit', 'Computer Personal Unit', 'Central Process Unit', 'Central Processor Utility'], answerIndex: 0 },
-      { question: 'Which data structure uses LIFO (Last In, First Out)?', options: ['Stack', 'Queue', 'Tree', 'Array'], answerIndex: 0 },
-      { question: 'Which data structure uses FIFO (First In, First Out)?', options: ['Queue', 'Stack', 'Tree', 'Graph'], answerIndex: 0 },
-      { question: 'What is the time complexity of binary search?', options: ['O(log n)', 'O(n)', 'O(n^2)', 'O(1)'], answerIndex: 0 },
-      { question: 'In binary, what is 1010 in decimal?', options: ['10', '8', '12', '14'], answerIndex: 0 },
-      { question: 'What is a boolean?', options: ['A true or false value', 'A text string', 'A whole number', 'A floating point number'], answerIndex: 0 },
-      { question: 'What does HTML stand for?', options: ['HyperText Markup Language', 'HyperText Machine Language', 'HyperLoop Text Language', 'HyperText Marking Logic'], answerIndex: 0 },
-      { question: 'Which loop will always execute at least once in many languages?', options: ['Do-While', 'While', 'For', 'Foreach'], answerIndex: 0 },
-      { question: 'What is an algorithm?', options: ['A step-by-step procedure to solve a problem', 'A programming language', 'A hardware component', 'A database format'], answerIndex: 0 },
-      { question: 'What does API stand for?', options: ['Application Programming Interface', 'Applied Process Integration', 'Application Program Internet', 'Automated Programming Interface'], answerIndex: 0 },
-      { question: 'What does RAM stand for?', options: ['Random Access Memory', 'Read Access Memory', 'Run Access Memory', 'Rapid Access Memory'], answerIndex: 0 },
-      { question: 'In OOP, what concept hides internal state?', options: ['Encapsulation', 'Inheritance', 'Polymorphism', 'Abstraction'], answerIndex: 0 },
-      { question: 'What is 2^10?', options: ['1024', '1000', '512', '2048'], answerIndex: 0 },
-      { question: 'Which protocol is used for secure web browsing?', options: ['HTTPS', 'HTTP', 'FTP', 'SMTP'], answerIndex: 0 },
-      { question: 'A byte consists of how many bits?', options: ['8', '4', '16', '32'], answerIndex: 0 },
-    ]
-  },
-  'data-analysis': {
-    id: 'data-analysis',
-    title: 'Data Analysis with Python',
-    questions: [
-      { question: 'Which Python library is primarily used for data manipulation and analysis?', options: ['Pandas', 'Numpy', 'Matplotlib', 'Requests'], answerIndex: 0 },
-      { question: 'What is the primary data structure in Pandas for 2D data?', options: ['DataFrame', 'Series', 'Array', 'List'], answerIndex: 0 },
-      { question: 'Which library is best for creating static, animated, and interactive visualizations in Python?', options: ['Matplotlib', 'Scikit-learn', 'TensorFlow', 'Flask'], answerIndex: 0 },
-      { question: 'What does CSV stand for?', options: ['Comma Separated Values', 'Computer System Variable', 'Code Standard Version', 'Common String Value'], answerIndex: 0 },
-      { question: 'In statistics, what is the mean?', options: ['The average', 'The middle value', 'The most frequent value', 'The difference between max and min'], answerIndex: 0 },
-      { question: 'What is the median of [1, 3, 3, 6, 7, 8, 9]?', options: ['6', '3', '7', '5'], answerIndex: 0 },
-      { question: 'What does the standard deviation measure?', options: ['The amount of variation or dispersion', 'The average', 'The total sum', 'The middle value'], answerIndex: 0 },
-      { question: 'Which function in pandas reads a CSV file?', options: ['pd.read_csv()', 'pd.open_csv()', 'pd.load_csv()', 'pd.csv_read()'], answerIndex: 0 },
-      { question: 'What is missing data often represented as in Pandas?', options: ['NaN', 'Null', 'None', '0'], answerIndex: 0 },
-      { question: 'Which method returns the first 5 rows of a DataFrame?', options: ['head()', 'first()', 'top()', 'start()'], answerIndex: 0 },
-      { question: 'What does exploratory data analysis (EDA) involve?', options: ['Analyzing datasets to summarize their main characteristics', 'Deploying a machine learning model', 'Scraping data from websites', 'Writing SQL queries'], answerIndex: 0 },
-      { question: 'Which machine learning library is widely used in Python?', options: ['Scikit-learn', 'Pygame', 'Django', 'BeautifulSoup'], answerIndex: 0 },
-      { question: 'What is a scatter plot used for?', options: ['To observe relationships between variables', 'To show proportions', 'To track changes over time', 'To list categories'], answerIndex: 0 },
-      { question: 'In Pandas, what does df.shape return?', options: ['A tuple of (rows, columns)', 'The total number of elements', 'The names of the columns', 'The memory usage'], answerIndex: 0 },
-      { question: 'What type of machine learning uses labeled data?', options: ['Supervised Learning', 'Unsupervised Learning', 'Reinforcement Learning', 'Deep Learning'], answerIndex: 0 },
-    ]
+export const getLessons = (lang: string, quizId?: string) => {
+  const isVi = lang === 'vi';
+  
+  const baseLessons: Record<string, any> = {
+    'scientific-notation': {
+      id: 'scientific-notation',
+      title: isVi ? 'Ký hiệu Khoa học' : 'Scientific Notation',
+      questions: [
+        { question: isVi ? 'Một biểu thức bằng 2.4 x 10^4 là gì?' : 'What is an expression equal to 2.4 x 10^4?', options: ['24,000', '2,400', '240,000', '24'], answerIndex: 0 },
+        { question: isVi ? 'Làm thế nào để viết 0.00035 bằng ký hiệu khoa học?' : 'How do you write 0.00035 in scientific notation?', options: ['3.5 x 10^-4', '35 x 10^-5', '3.5 x 10^4', '0.35 x 10^-3'], answerIndex: 0 },
+        { question: isVi ? 'Tính: (2 x 10^3) * (3 x 10^4)' : 'Calculate: (2 x 10^3) * (3 x 10^4)', options: ['6 x 10^7', '5 x 10^7', '6 x 10^12', '5 x 10^12'], answerIndex: 0 },
+        { question: isVi ? 'Tiền tố "kilo" tương ứng với lũy thừa nào của 10?' : 'What power of 10 does the prefix "kilo" represent?', options: ['10^3', '10^6', '10^-3', '10^2'], answerIndex: 0 },
+        { question: isVi ? '5.1 x 10^-2 bằng bao nhiêu?' : 'What is 5.1 x 10^-2 as a standard number?', options: ['0.051', '0.51', '510', '0.0051'], answerIndex: 0 },
+      ]
+    },
+    'logic': {
+      id: 'logic',
+      title: isVi ? 'Nhập môn Logic học' : 'Introduction to Logic',
+      questions: [
+        { question: isVi ? 'Toán tử logic nào trả về True NẾU VÀ CHỈ NẾU cả hai đầu vào đều là True?' : 'Which logical operator returns True IF AND ONLY IF both inputs are True?', options: ['AND', 'OR', 'XOR', 'NAND'], answerIndex: 0 },
+        { question: isVi ? 'Cổng nào trả về True nếu chính xác MỘT đầu vào là True?' : 'Which gate outputs True if exactly ONE input is True?', options: ['XOR', 'OR', 'AND', 'NOR'], answerIndex: 0 },
+        { question: isVi ? 'NOT(False) có giá trị là bao nhiêu?' : 'What does NOT(False) evaluate to?', options: ['True', 'False', 'Undefined', 'Error'], answerIndex: 0 },
+      ]
+    },
+    'math-foundations': {
+      id: 'math-foundations',
+      title: isVi ? 'Nền tảng Toán học' : 'Mathematical Foundations',
+      questions: [
+        { question: isVi ? 'Giá trị của pi đến hai chữ số thập phân là bao nhiêu?' : 'What is the value of pi to two decimal places?', options: ['3.14', '3.16', '3.12', '3.18'], answerIndex: 0 },
+        { question: isVi ? 'Giải phương trình: 2x + 5 = 15' : 'Solve for x: 2x + 5 = 15', options: ['5', '10', '7.5', '20'], answerIndex: 0 },
+      ]
+    }
+  };
+
+  if (quizId && quizId.startsWith('grade-')) {
+    const parts = quizId.split('-');
+    const grade = parts[1] || '5';
+    const topicIndex = parts[3] || '1';
+
+    let realTitle = isVi ? `Lớp ${grade} - Môn học` : `Grade ${grade} Subject`;
+    let realQuestions: any[] = [];
+
+    switch (topicIndex) {
+      case '1': // Mathematics
+        realTitle = isVi ? `Toán học - Lớp ${grade}` : `Mathematics - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Tính kết quả của phép tính: 145 + 238 - 110` : `[Grade ${grade}] Calculate: 145 + 238 - 110`,
+            options: ['273', '263', '283', '253'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Tìm x biết: 4x + 12 = 36` : `[Grade ${grade}] Solve for x: 4x + 12 = 36`,
+            options: ['6', '8', '5', '10'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Diện tích hình chữ nhật có chiều dài 8cm và chiều rộng 5cm là bao nhiêu?` : `[Grade ${grade}] Area of a rectangle with length 8cm and width 5cm?`,
+            options: ['40 cm²', '26 cm²', '13 cm²', '45 cm²'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Rút gọn phân số 24/36 về tối giản` : `[Grade ${grade}] Simplify the fraction 24/36`,
+            options: ['2/3', '3/4', '4/5', '5/6'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '2': // Natural Science
+        realTitle = isVi ? `Khoa học Tự nhiên - Lớp ${grade}` : `Natural Science - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Quá trình nào cây xanh tổng hợp chất hữu cơ từ ánh sáng mặt trời?` : `[Grade ${grade}] Which process do plants use to synthesize organic compounds from sunlight?`,
+            options: isVi 
+              ? ['Quang hợp', 'Hô hấp', 'Thoát hơi nước', 'Tiêu hóa']
+              : ['Photosynthesis', 'Respiration', 'Transpiration', 'Digestion'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Hạt mang điện tích âm quay quanh hạt nhân nguyên tử là gì?` : `[Grade ${grade}] What is the negatively charged subatomic particle orbiting the atomic nucleus?`,
+            options: ['Electron', 'Proton', 'Neutron', 'Photon'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Trạng thái nào của nước tồn tại ở nhiệt độ dưới 0°C (ở áp suất tiêu chuẩn)?` : `[Grade ${grade}] What state of water exists below 0°C at standard pressure?`,
+            options: isVi
+              ? ['Thể rắn', 'Thể lỏng', 'Thể khí', 'Thể plasma']
+              : ['Solid (Ice)', 'Liquid', 'Gas', 'Plasma'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '3': // Literature
+        realTitle = isVi ? `Ngữ văn - Lớp ${grade}` : `Literature - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Trong tiếng Việt, từ loại nào dùng để chỉ sự vật, hiện tượng, con người hoặc khái niệm?` : `[Grade ${grade}] In grammar, which part of speech names a person, place, thing, or idea?`,
+            options: isVi
+              ? ['Danh từ', 'Động từ', 'Tính từ', 'Trạng từ']
+              : ['Noun', 'Verb', 'Adjective', 'Adverb'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Biện pháp tu nghệ nào so sánh sự vật này với sự vật khác có nét tương đồng?` : `[Grade ${grade}] Which literary device draws a comparison between two things based on likeness?`,
+            options: isVi
+              ? ['So sánh', 'Ẩn dụ ngược', 'Nói giảm nói tránh', 'Liệt kê']
+              : ['Simile / Metaphor', 'Irony', 'Understatement', 'Enumeration'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Từ nào sau đây viết đúng chính tả tiếng Việt?` : `[Grade ${grade}] Which of the following words is spelled correctly in Vietnamese?`,
+            options: ['Sáng sủa', 'Xáng sủa', 'Sáng chủa', 'Xáng chủa'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '4': // Penmanship
+        realTitle = isVi ? `Luyện chữ & Chính tả - Lớp ${grade}` : `Penmanship & Spelling - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Quy tắc viết hoa nào sau đây chính xác?` : `[Grade ${grade}] Which capitalization rule is correct?`,
+            options: isVi
+              ? ['Viết hoa chữ cái đầu tiên của mỗi tiếng trong tên riêng', 'Viết hoa toàn bộ câu', 'Không bao giờ viết hoa', 'Chỉ viết hoa khi kết thúc câu']
+              : ['Capitalize the first letter of each proper noun', 'Capitalize the entire sentence', 'Never capitalize', 'Capitalize only at the end of a sentence'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Chọn từ điền đúng chính tả: "Trẻ em như ... trên cành"` : `[Grade ${grade}] Choose the correct word for the blank: "Trẻ em như ... trên cành"`,
+            options: ['búp', 'búp bê', 'búp măng', 'búp sen'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '5': // Extended Maths
+        realTitle = isVi ? `Toán nâng cao - Lớp ${grade}` : `Extended Maths - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Tìm số tiếp theo trong dãy: 2, 6, 12, 20, 30, ...` : `[Grade ${grade}] Find the next number in the sequence: 2, 6, 12, 20, 30, ...`,
+            options: ['42', '40', '36', '48'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Tổng của 3 số tự nhiên liên tiếp bằng 72. Số lớn nhất trong ba số đó là bao nhiêu?` : `[Grade ${grade}] The sum of 3 consecutive integers is 72. What is the largest integer?`,
+            options: ['25', '24', '26', '27'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '6': // Computer Science
+        realTitle = isVi ? `Khoa học Máy tính - Lớp ${grade}` : `Computer Science - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Bộ phận nào được ví như "bộ não" của máy tính?` : `[Grade ${grade}] Which component is considered the "brain" of the computer?`,
+            options: isVi
+              ? ['Bộ vi xử lý (CPU)', 'Bộ nhớ RAM', 'Ổ đĩa cứng', 'Màn hình hiển thị']
+              : ['Central Processing Unit (CPU)', 'RAM Memory', 'Hard Drive', 'Monitor Display'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Trong hệ nhị phân, các chữ số được biểu diễn bằng những ký tự nào?` : `[Grade ${grade}] In binary code, what digits are used to represent data?`,
+            options: isVi
+              ? ['0 và 1', 'Từ 0 đến 9', 'Từ A đến F', '1 đến 10']
+              : ['0 and 1', '0 through 9', 'A through F', '1 through 10'],
+            answerIndex: 0
+          }
+        ];
+        break;
+
+      case '7': // Coding
+      default:
+        realTitle = isVi ? `Lập trình - Lớp ${grade}` : `Coding - Grade ${grade}`;
+        realQuestions = [
+          {
+            question: isVi ? `[Lớp ${grade}] Cấu trúc điều kiện nào dùng để kiểm tra đúng/sai trong lập trình?` : `[Grade ${grade}] Which conditional statement is used to check true/false conditions in coding?`,
+            options: isVi
+              ? ['Câu lệnh điều kiện if / else', 'Vòng lặp loop', 'Lệnh in print', 'Biến số variable']
+              : ['if / else statement', 'loop structure', 'print function', 'variable declaration'],
+            answerIndex: 0
+          },
+          {
+            question: isVi ? `[Lớp ${grade}] Vòng lặp nào được sử dụng khi biết trước số lần lặp cụ thể?` : `[Grade ${grade}] Which loop is used when the exact number of iterations is known in advance?`,
+            options: isVi
+              ? ['Vòng lặp for', 'Vòng lặp while', 'Vòng lặp vô hạn', 'Câu lệnh if']
+              : ['for loop', 'while loop', 'infinite loop', 'if statement'],
+            answerIndex: 0
+          }
+        ];
+        break;
+    }
+
+    return {
+      [quizId]: {
+        id: quizId,
+        title: realTitle,
+        questions: realQuestions
+      },
+      ...baseLessons
+    };
   }
+
+  return baseLessons;
 };
