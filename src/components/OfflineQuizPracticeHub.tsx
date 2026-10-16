@@ -157,13 +157,22 @@ export const OfflineQuizPracticeHub: React.FC = () => {
                   {new Date(quiz.downloadedAt).toLocaleDateString()}
                 </span>
                 
-                <button
-                  onClick={() => navigate(`/quiz/${quiz.id}`)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 text-white font-black text-xs hover:bg-teal-700 transition-all shadow-2xs active:scale-95"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>{isVi ? 'Làm bài ngay' : 'Start Practice'}</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => navigate(`/quiz/${quiz.id}?mode=review`)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-black text-xs hover:bg-teal-100 transition-all border border-teal-200 dark:border-teal-800"
+                    title={isVi ? 'Ôn tập kèm giải thích tức thì' : 'Review Mode'}
+                  >
+                    <span>{isVi ? 'Ôn tập' : 'Review'}</span>
+                  </button>
+                  <button
+                    onClick={() => navigate(`/quiz/${quiz.id}?mode=test`)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700 transition-all shadow-2xs"
+                    title={isVi ? 'Kiểm tra bấm giờ' : 'Test Mode'}
+                  >
+                    <span>{isVi ? 'Thi thử' : 'Test'}</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -62,6 +62,14 @@ class AudioEngine {
     this.playTone(587.33, 'square', 0.2, 0.05, 0.7);    // D5
     this.playTone(783.99, 'square', 0.8, 0.08, 0.85);   // G5
   }
+
+  playPomodoroComplete() {
+    // Gentle melodic chime sequence for Pomodoro completion
+    this.playTone(523.25, 'sine', 0.4, 0.12, 0);    // C5
+    this.playTone(659.25, 'sine', 0.4, 0.12, 0.15); // E5
+    this.playTone(783.99, 'sine', 0.5, 0.15, 0.3);  // G5
+    this.playTone(1046.5, 'sine', 0.8, 0.18, 0.45); // C6
+  }
 }
 
 export const audio = new AudioEngine();

@@ -7,7 +7,6 @@ import { Flame, Zap, CheckCircle, Clock, ArrowRight, Sparkles } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../lib/streak';
 import PracticeCalendar from '../components/PracticeCalendar';
-import { OfflineQuizPracticeHub } from '../components/OfflineQuizPracticeHub';
 
 export default function Practice() {
   const { t, language } = useLanguage();
@@ -197,9 +196,34 @@ export default function Practice() {
         </div>
       </div>
       
-      {/* PWA Offline Quiz Download & Practice Center */}
-      <OfflineQuizPracticeHub />
-      
+      {/* Curriculum 2 Semesters & Modes Spotlight */}
+      <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-indigo-950 p-6 sm:p-8 rounded-[2rem] text-white shadow-lg border-2 border-teal-700/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md text-teal-200 text-xs font-black uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>{language === 'vi' ? '2 Học kỳ Tiêu chuẩn & Chế độ Ôn thi' : '2 Standard Semesters & Exam Modes'}</span>
+          </div>
+          <h3 className="text-2xl font-black text-white">
+            {language === 'vi' ? 'Luyện tập Theo Học kỳ & Đọc Tài liệu PDF' : 'Practice by Semester & Read Study PDFs'}
+          </h3>
+          <p className="text-teal-100/90 text-sm max-w-xl font-medium leading-relaxed">
+            {language === 'vi'
+              ? 'Lựa chọn giữa Chế độ Ôn tập (xem lời giải tức thì) hoặc Chế độ Kiểm tra (bấm giờ thi thử) cho toàn bộ 12 khối lớp và 2 học kỳ.'
+              : 'Choose between Review Mode (instant explanations & hints) or Test Mode (timed exam simulation) across all 12 grades and 2 semesters.'}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            onClick={() => navigate('/explore')}
+            className="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-gray-900 font-black text-xs transition-all shadow-md flex items-center gap-2"
+          >
+            <span>{language === 'vi' ? 'Khám phá 2 Học kỳ' : 'Explore Semesters'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* Smart Hub Practice History & Streak Calendar */}
       <PracticeCalendar 
         submissions={submissions} 

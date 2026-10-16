@@ -21,6 +21,8 @@ import AITutorPage from './pages/AITutorPage';
 import StudyPlannerPage from './pages/StudyPlannerPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ReportsPage from './pages/ReportsPage';
+import ClassesPage from './pages/ClassesPage';
+import StudyRooms from './pages/StudyRooms';
 
 // When people enter the URL without an active session, they enter the Homepage (Landing) before the login page
 function HomeRoute() {
@@ -100,6 +102,8 @@ export default function App() {
                   <Route path="/tutor" element={<RoleRoute allowedRoles={['student']}><AITutorPage /></RoleRoute>} />
                   <Route path="/explore" element={<RoleRoute allowedRoles={['student']}><Explore /></RoleRoute>} />
                   <Route path="/practice" element={<RoleRoute allowedRoles={['student']}><Practice /></RoleRoute>} />
+                  <Route path="/classes" element={<RoleRoute allowedRoles={['student']}><ClassesPage /></RoleRoute>} />
+                  <Route path="/study-rooms" element={<RoleRoute allowedRoles={['student', 'teacher']}><StudyRooms /></RoleRoute>} />
                   <Route path="/flashcards" element={<RoleRoute allowedRoles={['student']}><Flashcards /></RoleRoute>} />
                   <Route path="/planner" element={<RoleRoute allowedRoles={['student']}><StudyPlannerPage /></RoleRoute>} />
                   <Route path="/achievements" element={<RoleRoute allowedRoles={['student']}><Achievements /></RoleRoute>} />

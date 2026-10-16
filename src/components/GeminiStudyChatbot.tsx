@@ -515,47 +515,48 @@ export default function GeminiStudyChatbot({ initialTopic, isFloating = false, o
         ? 'h-[640px] max-h-[85vh] w-full rounded-2xl shadow-2xl overflow-hidden' 
         : 'h-[calc(100vh-140px)] min-h-[580px] rounded-3xl shadow-sm overflow-hidden'
     }`}>
-      {/* Top Header */}
-      <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-white p-3.5 sm:px-6 flex items-center justify-between border-b border-teal-800/20 shrink-0">
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-teal-100 shadow-inner shrink-0">
-            <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+      {/* Top Header - Bulletproof non-overlapping layout */}
+      <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-white p-3 sm:px-5 flex items-center justify-between gap-3 border-b border-teal-800/20 shrink-0">
+        {/* Left: Branding & Active Student Identity */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-teal-100 shadow-inner shrink-0">
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h2 className="font-extrabold text-sm sm:text-base leading-tight truncate">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h2 className="font-extrabold text-sm sm:text-base leading-tight truncate shrink-0">
                 {t('gemini_chat.title')}
               </h2>
-              {/* Distinct Student Profile Tag: Displays the active student account */}
+              {/* Distinct Student Profile Tag: safely truncated so it never overlaps */}
               <div 
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-800/50 text-[10px] sm:text-[11px] font-bold text-teal-100 border border-teal-400/30"
-                title={`${isVi ? 'Không gian riêng của học sinh' : 'Private student workspace'}: ${studentDisplayName}`}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-800/60 text-[10px] sm:text-[11px] font-bold text-teal-100 border border-teal-400/30 truncate max-w-[130px] sm:max-w-[180px] shrink"
+                title={`${isVi ? 'Học sinh' : 'Student'}: ${studentDisplayName}`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="truncate max-w-[120px] sm:max-w-[160px]">{studentDisplayName}</span>
-                <span className="text-[9px] text-teal-300 opacity-80">(L.{studentGrade})</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-ping" />
+                <span className="truncate">{studentDisplayName}</span>
+                <span className="text-[9px] text-teal-300 opacity-80 shrink-0">(L.{studentGrade})</span>
               </div>
             </div>
-            <p className="text-[11px] text-teal-100/90 font-medium truncate mt-0.5">
+            <p className="text-[11px] text-teal-100/90 font-medium truncate mt-0.5 max-w-md">
               {activeSession ? activeSession.title : t('gemini_chat.subtitle')}
             </p>
           </div>
         </div>
 
-        {/* Header Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Right Header Action Controls: Compact, responsive, no overflow */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Conversation Switcher Button */}
           <button
             onClick={() => setIsConvListOpen(!isConvListOpen)}
-            className={`px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
               isConvListOpen 
                 ? 'bg-white text-teal-800 shadow-md ring-2 ring-teal-300' 
                 : 'bg-white/15 hover:bg-white/25 text-white'
             }`}
             title={t('gemini_chat.conversations')}
           >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('gemini_chat.conversations')}</span>
+            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden xl:inline">{t('gemini_chat.conversations')}</span>
             <span className="px-1.5 py-0.2 rounded-full bg-teal-900/40 text-[10px] font-black">
               {conversations.length}
             </span>
@@ -564,40 +565,42 @@ export default function GeminiStudyChatbot({ initialTopic, isFloating = false, o
           {/* New Chat Button */}
           <button
             onClick={() => handleCreateNewConversation()}
-            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-teal-800/60 hover:bg-teal-800 text-teal-100 font-bold text-xs flex items-center gap-1 transition-all"
+            className="p-1.5 sm:px-2 sm:py-1.5 rounded-xl bg-teal-800/60 hover:bg-teal-800 text-teal-100 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
             title={t('gemini_chat.new_chat')}
           >
-            <Plus className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden md:inline">{t('gemini_chat.new_chat')}</span>
+            <Plus className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <span className="hidden xl:inline">{t('gemini_chat.new_chat')}</span>
           </button>
 
           {/* Voice Call Button */}
           <button
             id="gemini-header-voice-call-btn"
             onClick={() => setIsVoiceModalOpen(true)}
-            className="px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all transform hover:scale-105"
+            className="p-1.5 sm:px-2 sm:py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-black text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer"
             title={t('gemini_chat.start_voice_call')}
           >
-            <PhoneCall className="w-3.5 h-3.5 text-teal-950 animate-pulse" />
-            <span className="hidden lg:inline">{isVi ? 'Gọi thoại AI Live' : 'Live Voice'}</span>
+            <PhoneCall className="w-3.5 h-3.5 text-teal-950 shrink-0 animate-pulse" />
+            <span className="hidden xl:inline">{isVi ? 'Voice' : 'Voice'}</span>
           </button>
 
           {/* Clear Current Chat Button */}
           <button
             onClick={handleClearHistory}
             title={t('gemini_chat.clear_history')}
-            className="p-1.5 sm:p-2 rounded-xl bg-white/10 hover:bg-white/20 text-teal-100 transition-colors"
+            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-teal-100 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           {onClose && (
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
-              title="Close"
+              className="p-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all shadow-md cursor-pointer flex items-center justify-center shrink-0 border border-red-400"
+              title={isVi ? 'Đóng cửa sổ (ESC)' : 'Close (ESC)'}
+              aria-label="Close"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 stroke-[2.5]" />
             </button>
           )}
         </div>

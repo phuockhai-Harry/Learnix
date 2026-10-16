@@ -21,7 +21,8 @@ import {
   initializeStudentLearningPath, 
   PersonalizedLearningPath 
 } from '../services/progressSyncService';
-import { OfflineQuizPracticeHub } from '../components/OfflineQuizPracticeHub';
+import { CURRICULUM_QUIZZES, getSubjectsForGrade } from '../data/curriculumData';
+
 
 export default function StudentDashboard() {
   const { user, profile } = useAuth();
@@ -137,12 +138,15 @@ export default function StudentDashboard() {
           const localizedLessons = getLessons(language);
           
           const chartedData = subData.map(sub => {
-            let title = 'Unknown Quiz';
+            let title = sub.quizTitle || '';
             if (localizedLessons[sub.quizId as keyof typeof localizedLessons]) {
               title = localizedLessons[sub.quizId as keyof typeof localizedLessons].title;
             } else {
-              const quiz = quizzesData.find(q => q.id === sub.quizId);
-              if (quiz) title = quiz.title;
+              const quiz = quizzesData.find(q => q.id === sub.quizId) || CURRICULUM_QUIZZES.find(q => q.id === sub.quizId);
+              if (quiz) title = isVi ? quiz.title : (quiz.titleEn || quiz.title);
+            }
+            if (!title || title.toLowerCase().includes('unknown')) {
+              title = sub.subject ? `${sub.subject} - ${isVi ? 'Bài kiểm tra chuyên đề' : 'Curriculum Quiz'}` : (isVi ? 'Bài kiểm tra ôn tập chuẩn' : 'Standard Curriculum Quiz');
             }
             return {
               ...sub,
@@ -217,7 +221,7 @@ export default function StudentDashboard() {
   }
 
   const avgScore = mySubmissions.length > 0 
-    ? Math.round(mySubmissions.reduce((acc, curr) => acc + curr.score, 0) / mySubmissions.length) 
+    ? Math.min(100, Math.max(0, Math.round(mySubmissions.reduce((acc, curr) => acc + (curr.percentage || (curr.score <= 100 ? curr.score : Math.round((curr.score / 150) * 100))), 0) / mySubmissions.length)))
     : 0;
 
   return (
@@ -239,12 +243,6 @@ export default function StudentDashboard() {
               <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
               <span>{isVi ? `Khối lớp ${profile?.grade || 6}` : `Grade ${profile?.grade || 6}`}</span>
             </div>
-
-            <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-bold text-teal-100">
-              <span className={`w-2 h-2 rounded-full bg-emerald-400 ${syncPulse ? 'animate-ping' : ''}`}></span>
-              <Cloud className="w-3.5 h-3.5 text-emerald-300" />
-              <span>{isVi ? 'Đồng bộ đám mây đa thiết bị' : 'Cloud Synced'} ({lastSyncTime})</span>
-            </div>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black">
             {t('student.welcome')} {profile?.codeName || profile?.realName || 'Student'}! 👋
@@ -257,6 +255,13 @@ export default function StudentDashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/explore"
+            className="flex items-center gap-2 bg-amber-400 text-gray-900 px-5 py-3 rounded-2xl font-black shadow-md hover:bg-amber-300 transition-all hover:scale-105 active:scale-95 text-sm"
+          >
+            <BookOpen className="w-4 h-4 text-gray-900" />
+            <span>{isVi ? 'Môn học & 2 Học kỳ' : 'Subjects & Semesters'}</span>
+          </Link>
           <Link
             to="/practice"
             className="flex items-center gap-2 bg-white text-teal-800 px-5 py-3 rounded-2xl font-black shadow-md hover:bg-teal-50 transition-all hover:scale-105 active:scale-95 text-sm"
@@ -307,8 +312,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* PWA Offline Quiz Download & Practice Section */}
-      <OfflineQuizPracticeHub />
+
 
       {/* 4 Core Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -352,6 +356,63 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
+
+      {/* 2 Semesters & Subject Quick Jump Hub ("mỗi môn sẽ chuyển sang tab đúng với môn đó") */}
+      <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border-2 border-gray-100 dark:border-gray-700/80 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-teal-50 dark:bg-teal-950/60 rounded-xl text-teal-600 dark:text-teal-400">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
+                {isVi ? `Chương trình Khối lớp ${profile?.grade || 6}: 2 Học kỳ & Môn học` : `Grade ${profile?.grade || 6}: Semesters & Subjects`}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {isVi ? 'Nhấp vào từng môn để chuyển thẳng sang tab đề thi Giữa kỳ, Thường xuyên & tài liệu' : 'Click any subject to open its Midterm, Regular tests & study PDFs'}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/explore"
+            className="text-xs font-black text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 self-start sm:self-center"
+          >
+            <span>{isVi ? 'Xem tất cả môn' : 'View all'}</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {getSubjectsForGrade(profile?.grade || 6).map((sub) => {
+            return (
+              <Link
+                key={sub.id}
+                to={`/explore?subject=${sub.id}`}
+                className="p-3 sm:p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-900/60 hover:bg-teal-50 dark:hover:bg-teal-950/40 border border-gray-200/80 dark:border-gray-700/60 hover:border-teal-400 dark:hover:border-teal-600 transition-all flex flex-col items-center text-center gap-2 group shadow-2xs hover:shadow-xs hover:-translate-y-0.5 overflow-hidden"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 shadow-2xs flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform shrink-0">
+                  {sub.category === 'math' && <span className="text-lg">📐</span>}
+                  {sub.category === 'literature' && <span className="text-lg">📖</span>}
+                  {sub.category === 'science' && <span className="text-lg">🔬</span>}
+                  {sub.category === 'english' && <span className="text-lg">🇬🇧</span>}
+                  {sub.category === 'social' && sub.id.includes('civic') && <span className="text-lg">⚖️</span>}
+                  {sub.category === 'social' && !sub.id.includes('civic') && <span className="text-lg">🌏</span>}
+                  {sub.category === 'tech' && sub.id.includes('tech') && <span className="text-lg">🛠️</span>}
+                  {sub.category === 'tech' && !sub.id.includes('tech') && <span className="text-lg">💻</span>}
+                </div>
+                <div className="min-w-0 w-full px-1">
+                  <span className="text-xs font-black text-gray-800 dark:text-gray-200 group-hover:text-teal-600 dark:group-hover:text-teal-400 truncate block text-center" title={isVi ? sub.nameVi : sub.nameEn}>
+                    {isVi ? sub.nameVi : sub.nameEn}
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-bold block mt-0.5">
+                    HK1 & HK2
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Active Homework Section (if any assignments exist) */}
       {homeworks.length > 0 && (
@@ -473,142 +534,11 @@ export default function StudentDashboard() {
           {/* Recent Activity Feed (Chronological list of completed quizzes and achieved goals) */}
           <RecentActivityFeed submissions={mySubmissions} />
 
-          {/* Quick Study Hub - Clean cards pointing to dedicated pages */}
-          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
-                <PlayCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-                <span>{isVi ? 'Lối tắt Học tập Nhanh' : 'Quick Study Hub'}</span>
-              </h2>
-              <Link to="/explore" className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1">
-                <span>{isVi ? 'Xem tất cả' : 'View all'}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Link
-                to="/practice"
-                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
-              >
-                <div className="p-3 bg-teal-100 dark:bg-teal-900/40 rounded-xl text-teal-700 dark:text-teal-300 group-hover:scale-110 transition-transform shrink-0">
-                  <PlayCircle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors">
-                    {isVi ? 'Luyện tập Trắc nghiệm' : 'Practice Quizzes'}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {isVi ? 'Toán học, Khoa học tự nhiên & Lập trình' : 'Math, Natural Sciences & Logic'}
-                  </p>
-                </div>
-              </Link>
-
-              <Link
-                to="/tutor"
-                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
-              >
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/40 rounded-xl text-blue-700 dark:text-blue-300 group-hover:scale-110 transition-transform shrink-0">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                    {isVi ? 'Gia sư Gemini AI' : 'Gemini AI Tutor'}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {isVi ? 'Hỏi bài, đố vui theo chủ đề & gợi ý từng bước' : 'Multi-turn interactive AI tutoring'}
-                  </p>
-                </div>
-              </Link>
-
-              <Link
-                to="/flashcards"
-                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
-              >
-                <div className="p-3 bg-purple-100 dark:bg-purple-900/40 rounded-xl text-purple-700 dark:text-purple-300 group-hover:scale-110 transition-transform shrink-0">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                    {isVi ? 'Thẻ ghi nhớ Từ vựng' : 'Flashcards'}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {isVi ? 'Ôn tập định nghĩa và thuật ngữ cốt lõi' : 'Review definitions & key terms'}
-                  </p>
-                </div>
-              </Link>
-
-              <Link
-                to="/planner"
-                className="p-4.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all flex items-start space-x-3.5 group"
-              >
-                <div className="p-3 bg-orange-100 dark:bg-orange-900/40 rounded-xl text-orange-700 dark:text-orange-300 group-hover:scale-110 transition-transform shrink-0">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors">
-                    {isVi ? 'Lịch ôn thi & Kế hoạch' : 'Study Planner'}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {isVi ? 'Lịch kiểm tra, mục tiêu ngày & bộ đếm' : 'Exam schedules, goals & timers'}
-                  </p>
-                </div>
-              </Link>
-            </div>
-          </section>
         </div>
 
-        {/* Right Column: Classes, Leaderboard Podium, Parent Report Shortcut */}
+        {/* Right Column: Leaderboard Podium and Study Goals */}
         <div className="space-y-6">
-          {/* My Classes */}
-          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
-            <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-blue-600" />
-              <span>{t('student.my_classes')}</span>
-            </h2>
-
-            <form onSubmit={handleJoinClass} className="space-y-2 mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder={t('student.class_code_placeholder')}
-                  className="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white uppercase"
-                  value={joinCodeInput}
-                  onChange={(e) => setJoinCodeInput(e.target.value)}
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={joining}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
-                >
-                  {joining ? '...' : t('student.join')}
-                </button>
-              </div>
-              {joinError && <p className="text-red-500 text-xs font-medium">{joinError}</p>}
-            </form>
-
-            {joinedClasses.length > 0 ? (
-              <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                {joinedClasses.map((c, idx) => (
-                  <div key={c.id || idx} className="py-2.5 first:pt-0 last:pb-0">
-                    <Link to={`/class/${c.id}`} className="block group">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors truncate">
-                        {c.name}
-                      </p>
-                      <p className="text-[11px] text-gray-400">
-                        {t('student.teacher')}: {c.teacherName || 'Teacher'}
-                      </p>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 text-center py-2">
-                {isVi ? 'Chưa tham gia lớp nào. Hãy nhập mã lớp của giáo viên.' : 'Not joined any classes yet.'}
-              </p>
-            )}
-          </section>
 
           {/* Leaderboard Podium Preview */}
           <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">

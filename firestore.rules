@@ -256,5 +256,67 @@ service cloud.firestore {
       allow create, update: if isSignedIn() && (request.auth.uid == planId || request.resource.data.studentId == request.auth.uid || isAdmin());
       allow delete: if isSignedIn() && (request.auth.uid == planId || (resource != null && resource.data.studentId == request.auth.uid) || isAdmin());
     }
+
+    // --- Study Room Messages (Real-time collaborative human-only chat) ---
+    function isValidStudyRoomMessage(data) {
+      return data.keys().hasAll(['roomId', 'senderId', 'senderName', 'senderRole', 'text', 'createdAt'])
+        && data.roomId is string && data.roomId.size() <= 128
+        && data.senderId is string && data.senderId.size() <= 128
+        && data.senderName is string && data.senderName.size() <= 100
+        && data.senderRole is string && (data.senderRole == 'student' || data.senderRole == 'teacher' || data.senderRole == 'admin')
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 2000
+        && (!data.keys().hasAny(['subject']) || (data.subject is string && data.subject.size() <= 100))
+        && (!data.keys().hasAny(['grade']) || (data.grade is number))
+        && data.createdAt == request.time;
+    }
+
+    match /studyRoomMessages/{messageId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && isValidId(messageId)
+        && isValidStudyRoomMessage(incoming())
+        && incoming().senderId == request.auth.uid;
+      allow update: if false; // Messages are immutable once posted
+      allow delete: if isSignedIn() && (resource.data.senderId == request.auth.uid || isTeacher() || isAdmin());
+    }
+
+    // --- Study Room Presence (Real-time active peer roster) ---
+    function isValidStudyRoomPresence(data) {
+      return data.keys().hasAll(['roomId', 'userId', 'userName', 'userRole', 'status', 'lastActive'])
+        && data.roomId is string && data.roomId.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.userName is string && data.userName.size() <= 100
+        && data.userRole is string && (data.userRole == 'student' || data.userRole == 'teacher' || data.userRole == 'admin')
+        && data.status is string && (data.status == 'online' || data.status == 'studying' || data.status == 'asking_question')
+        && (!data.keys().hasAny(['grade']) || (data.grade is number))
+        && data.lastActive == request.time;
+    }
+
+    match /studyRoomPresence/{presenceId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && isValidId(presenceId)
+        && incoming().userId == request.auth.uid
+        && isValidStudyRoomPresence(incoming());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // --- Study Room Pinned Topics / Collaborative Questions ---
+    function isValidStudyRoomTopic(data) {
+      return data.keys().hasAll(['roomId', 'pinnedTopic', 'pinnedByName', 'updatedAt'])
+        && data.roomId is string && data.roomId.size() <= 128
+        && data.pinnedTopic is string && data.pinnedTopic.size() <= 500
+        && data.pinnedByName is string && data.pinnedByName.size() <= 100
+        && (!data.keys().hasAny(['pinnedByRole']) || (data.pinnedByRole is string && data.pinnedByRole.size() <= 50))
+        && data.updatedAt == request.time;
+    }
+
+    match /studyRoomTopics/{roomId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && isValidId(roomId)
+        && isValidStudyRoomTopic(incoming());
+      allow delete: if isSignedIn() && (isTeacher() || isAdmin());
+    }
   }
 }

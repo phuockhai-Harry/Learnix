@@ -1,3 +1,5 @@
+import { CURRICULUM_QUIZZES } from './curriculumData';
+
 export const getLessons = (lang: string, quizId?: string) => {
   const isVi = lang === 'vi';
   
@@ -6,31 +8,50 @@ export const getLessons = (lang: string, quizId?: string) => {
       id: 'scientific-notation',
       title: isVi ? 'Ký hiệu Khoa học' : 'Scientific Notation',
       questions: [
-        { question: isVi ? 'Một biểu thức bằng 2.4 x 10^4 là gì?' : 'What is an expression equal to 2.4 x 10^4?', options: ['24,000', '2,400', '240,000', '24'], answerIndex: 0 },
-        { question: isVi ? 'Làm thế nào để viết 0.00035 bằng ký hiệu khoa học?' : 'How do you write 0.00035 in scientific notation?', options: ['3.5 x 10^-4', '35 x 10^-5', '3.5 x 10^4', '0.35 x 10^-3'], answerIndex: 0 },
-        { question: isVi ? 'Tính: (2 x 10^3) * (3 x 10^4)' : 'Calculate: (2 x 10^3) * (3 x 10^4)', options: ['6 x 10^7', '5 x 10^7', '6 x 10^12', '5 x 10^12'], answerIndex: 0 },
-        { question: isVi ? 'Tiền tố "kilo" tương ứng với lũy thừa nào của 10?' : 'What power of 10 does the prefix "kilo" represent?', options: ['10^3', '10^6', '10^-3', '10^2'], answerIndex: 0 },
-        { question: isVi ? '5.1 x 10^-2 bằng bao nhiêu?' : 'What is 5.1 x 10^-2 as a standard number?', options: ['0.051', '0.51', '510', '0.0051'], answerIndex: 0 },
+        { question: isVi ? 'Một biểu thức bằng 2.4 x 10^4 là gì?' : 'What is an expression equal to 2.4 x 10^4?', options: ['24,000', '2,400', '240,000', '24'], answerIndex: 0, hint: '10^4 = 10,000. 2.4 x 10,000 = ?', explanation: '2.4 nhân với 10^4 (10,000) bằng 24,000.' },
+        { question: isVi ? 'Làm thế nào để viết 0.00035 bằng ký hiệu khoa học?' : 'How do you write 0.00035 in scientific notation?', options: ['3.5 x 10^-4', '35 x 10^-5', '3.5 x 10^4', '0.35 x 10^-3'], answerIndex: 0, hint: 'Dời dấu phẩy sang phải 4 chữ số: 3.5 x 10^-4', explanation: '0.00035 được viết chuẩn dạng a x 10^b với 1 ≤ a < 10 là 3.5 x 10^-4.' },
+        { question: isVi ? 'Tính: (2 x 10^3) * (3 x 10^4)' : 'Calculate: (2 x 10^3) * (3 x 10^4)', options: ['6 x 10^7', '5 x 10^7', '6 x 10^12', '5 x 10^12'], answerIndex: 0, hint: '(2 x 3) x (10^3 x 10^4) = 6 x 10^(3+4).', explanation: 'Nhân phần hệ số 2 x 3 = 6; cộng số mũ 3 + 4 = 7. Kết quả: 6 x 10^7.' },
+        { question: isVi ? 'Tiền tố "kilo" tương ứng với lũy thừa nào của 10?' : 'What power of 10 does the prefix "kilo" represent?', options: ['10^3', '10^6', '10^-3', '10^2'], answerIndex: 0, hint: '1 kilômét = 1,000 mét = 10^3 mét.', explanation: 'Tiền tố SI kilo tương ứng 1,000 = 10^3.' },
+        { question: isVi ? '5.1 x 10^-2 bằng bao nhiêu?' : 'What is 5.1 x 10^-2 as a standard number?', options: ['0.051', '0.51', '510', '0.0051'], answerIndex: 0, hint: '10^-2 = 1/100 = 0.01.', explanation: '5.1 x 0.01 = 0.051.' },
       ]
     },
     'logic': {
       id: 'logic',
       title: isVi ? 'Nhập môn Logic học' : 'Introduction to Logic',
       questions: [
-        { question: isVi ? 'Toán tử logic nào trả về True NẾU VÀ CHỈ NẾU cả hai đầu vào đều là True?' : 'Which logical operator returns True IF AND ONLY IF both inputs are True?', options: ['AND', 'OR', 'XOR', 'NAND'], answerIndex: 0 },
-        { question: isVi ? 'Cổng nào trả về True nếu chính xác MỘT đầu vào là True?' : 'Which gate outputs True if exactly ONE input is True?', options: ['XOR', 'OR', 'AND', 'NOR'], answerIndex: 0 },
-        { question: isVi ? 'NOT(False) có giá trị là bao nhiêu?' : 'What does NOT(False) evaluate to?', options: ['True', 'False', 'Undefined', 'Error'], answerIndex: 0 },
+        { question: isVi ? 'Toán tử logic nào trả về True NẾU VÀ CHỈ NẾU cả hai đầu vào đều là True?' : 'Which logical operator returns True IF AND ONLY IF both inputs are True?', options: ['AND', 'OR', 'XOR', 'NAND'], answerIndex: 0, hint: 'Phép hội logic A ∧ B.', explanation: 'Toán tử AND chỉ trả về True khi cả hai mệnh đề đều đúng.' },
+        { question: isVi ? 'Cổng nào trả về True nếu chính xác MỘT đầu vào là True?' : 'Which gate outputs True if exactly ONE input is True?', options: ['XOR', 'OR', 'AND', 'NOR'], answerIndex: 0, hint: 'Phép hoặc loại trừ (Exclusive OR).', explanation: 'Cổng XOR (Exclusive OR) trả về True khi 2 đầu vào khác nhau (chính xác một True).' },
+        { question: isVi ? 'NOT(False) có giá trị là bao nhiêu?' : 'What does NOT(False) evaluate to?', options: ['True', 'False', 'Undefined', 'Error'], answerIndex: 0, hint: 'Phủ định của False là True.', explanation: 'Phép phủ định NOT đảo ngược chân trị: NOT(False) = True.' },
       ]
     },
     'math-foundations': {
       id: 'math-foundations',
       title: isVi ? 'Nền tảng Toán học' : 'Mathematical Foundations',
       questions: [
-        { question: isVi ? 'Giá trị của pi đến hai chữ số thập phân là bao nhiêu?' : 'What is the value of pi to two decimal places?', options: ['3.14', '3.16', '3.12', '3.18'], answerIndex: 0 },
-        { question: isVi ? 'Giải phương trình: 2x + 5 = 15' : 'Solve for x: 2x + 5 = 15', options: ['5', '10', '7.5', '20'], answerIndex: 0 },
+        { question: isVi ? 'Giá trị của pi đến hai chữ số thập phân là bao nhiêu?' : 'What is the value of pi to two decimal places?', options: ['3.14', '3.16', '3.12', '3.18'], answerIndex: 0, hint: 'Số pi xấp xỉ 22/7.', explanation: 'Giá trị pi xấp xỉ 3.14159... làm tròn 2 chữ số thập phân là 3.14.' },
+        { question: isVi ? 'Giải phương trình: 2x + 5 = 15' : 'Solve for x: 2x + 5 = 15', options: ['5', '10', '7.5', '20'], answerIndex: 0, hint: '2x = 15 - 5 = 10.', explanation: '2x = 10 => x = 10 / 2 = 5.' },
       ]
     }
   };
+
+  // Populate all curriculum quizzes into baseLessons
+  for (const cQuiz of CURRICULUM_QUIZZES) {
+    baseLessons[cQuiz.id] = {
+      id: cQuiz.id,
+      title: isVi ? cQuiz.title : cQuiz.titleEn,
+      subject: isVi ? cQuiz.subjectVi : cQuiz.subjectEn,
+      grade: cQuiz.grade,
+      semester: cQuiz.semester,
+      durationMinutes: cQuiz.durationMinutes,
+      questions: cQuiz.questions.map(q => ({
+        question: q.question,
+        options: q.options,
+        answerIndex: q.answerIndex,
+        hint: q.hint,
+        explanation: q.explanation
+      }))
+    };
+  }
 
   if (quizId && quizId.startsWith('grade-')) {
     const parts = quizId.split('-');

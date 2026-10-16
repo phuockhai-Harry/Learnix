@@ -167,6 +167,8 @@ export const translations: Translations = {
   'layout.achievements': { en: 'Achievements', vi: 'Thành tựu' },
   'layout.reports': { en: 'Reports', vi: 'Báo cáo Học tập' },
   'layout.account': { en: 'Account', vi: 'Tài khoản' },
+  'layout.classes': { en: 'My Classes', vi: 'Lớp học của tôi' },
+  'layout.studyRooms': { en: 'Study Rooms', vi: 'Phòng Thảo Luận' },
   'layout.learning': { en: 'Learning & Quizzes', vi: 'Học tập & Rèn luyện' },
 
   // Account
@@ -325,31 +327,52 @@ export const translations: Translations = {
   'toast.sync_now': { en: 'Sync Now', vi: 'Đồng bộ ngay' },
   'toast.test_offline': { en: 'Simulate Offline', vi: 'Thử nghiệm Ngoại tuyến' },
   'toast.reconnect': { en: 'Reconnect', vi: 'Kết nối lại' },
+  // Flashcards
+  'flashcards.title': { en: 'Subject Flashcards & Memory Hub', vi: 'Thẻ ghi nhớ & Ôn tập các môn' },
+  'flashcards.subtitle': { en: 'Review key terms, formulas, and definitions across all curriculum subjects.', vi: 'Ôn tập thuật ngữ, công thức và khái niệm trọng tâm cho tất cả các môn học.' },
+  'flashcards.flip_hint': { en: 'Click card to flip and reveal explanation', vi: 'Nhấp vào thẻ để lật xem giải thích chi tiết' },
+  'flashcards.previous': { en: 'Previous', vi: 'Câu trước' },
+  'flashcards.next': { en: 'Next', vi: 'Câu tiếp' },
+  'flashcards.shuffle': { en: 'Shuffle', vi: 'Trộn thẻ' },
+  'flashcards.all_subjects': { en: 'All Subjects', vi: 'Tất cả môn học' },
+  'flashcards.select_deck': { en: 'Select Subject Deck', vi: 'Chọn bộ môn cần ôn' },
+  // Study Rooms
+  'studyRooms.title': { en: 'Virtual Collaborative Study Rooms', vi: 'Phòng Thảo Luận Học Tập Trực Tuyến' },
+  'studyRooms.subtitle': { en: 'Join subject-based live text discussion rooms with classmates and teachers.', vi: 'Tham gia các phòng trao đổi bài vở theo từng môn học cùng bạn bè và thầy cô.' },
+  'studyRooms.online_peers': { en: 'Online peers', vi: 'Bạn học đang online' },
+  'studyRooms.type_message': { en: 'Type your question or study notes...', vi: 'Nhập câu hỏi bài tập hoặc ghi chú thảo luận...' },
+  'studyRooms.send': { en: 'Send', vi: 'Gửi' },
 };
 
-interface LanguageContextType {
+export interface LanguageContextType {
   language: Language;
   toggleLanguage: () => void;
+  setLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({} as LanguageContextType);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('vi');
+  const [language, setLanguageState] = useState<Language>('vi');
 
   useEffect(() => {
     const saved = localStorage.getItem('language') as Language;
     if (saved === 'en' || saved === 'vi') {
-      setLanguage(saved);
+      setLanguageState(saved);
     } else {
-      setLanguage('vi');
+      setLanguageState('vi');
       localStorage.setItem('language', 'vi');
     }
   }, []);
 
+  const setLanguage = (newLang: Language) => {
+    setLanguageState(newLang);
+    localStorage.setItem('language', newLang);
+  };
+
   const toggleLanguage = () => {
-    setLanguage(prev => {
+    setLanguageState(prev => {
       const newLang = prev === 'en' ? 'vi' : 'en';
       localStorage.setItem('language', newLang);
       return newLang;
@@ -361,7 +384,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

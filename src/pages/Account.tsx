@@ -94,6 +94,11 @@ export default function Account() {
   };
 
   const handleDeleteAccount = async () => {
+    if (isAdmin) {
+      setError(isVi ? 'Tài khoản Quản trị viên được bảo vệ và không thể xóa.' : 'Administrator accounts are protected and cannot be deleted.');
+      setDeleteLoading(false);
+      return;
+    }
     setDeleteLoading(true);
     setError('');
 
@@ -267,38 +272,11 @@ export default function Account() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t('account.role')}</label>
-              {isAdmin ? (
-                <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl font-bold text-xs uppercase tracking-wider">
-                  {isVi ? 'Quản trị viên Hệ thống' : 'System Administrator'}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentRole('student')}
-                    className={`py-2.5 px-3 rounded-xl font-bold text-xs transition-all border ${
-                      currentRole === 'student'
-                        ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {isVi ? 'Học sinh' : 'Student'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentRole('teacher')}
-                    className={`py-2.5 px-3 rounded-xl font-bold text-xs transition-all border ${
-                      currentRole === 'teacher'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {isVi ? 'Giáo viên' : 'Teacher'}
-                  </button>
-                </div>
-              )}
+              <div className="px-4 py-3 bg-gray-100 dark:bg-gray-900 rounded-xl font-bold text-gray-700 dark:text-gray-300 capitalize">
+                {isAdmin ? (isVi ? 'Quản trị viên Hệ thống' : 'System Administrator') : isTeacher ? (isVi ? 'Giáo viên' : 'Teacher') : (isVi ? 'Học sinh' : 'Student')}
+              </div>
               <p className="text-xs text-gray-400 mt-1.5">
-                {isAdmin ? (isVi ? 'Quyền quản trị cấp cao nhất' : 'Full system privileges') : (isVi ? 'Chuyển đổi vai trò để xem giao diện học sinh hoặc giáo viên' : 'Switch role to test student or teacher views')}
+                {isVi ? 'Vai trò tài khoản được cố định.' : 'Account role is fixed.'}
               </p>
             </div>
 
@@ -384,52 +362,64 @@ export default function Account() {
         </form>
       </div>
 
-      {/* Delete Account Danger Zone */}
-      <div className="bg-red-50 dark:bg-red-950/20 p-8 rounded-3xl border-2 border-red-200 dark:border-red-900/50">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-2xl shrink-0">
-            <ShieldAlert className="w-6 h-6" />
+      {/* Delete Account Danger Zone (Students and Teachers only, Admins protected) */}
+      {isAdmin ? (
+        <div className="bg-amber-50 dark:bg-amber-950/20 p-6 rounded-3xl border border-amber-200 dark:border-amber-900/50 flex items-start sm:items-center gap-4">
+          <div className="p-3 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-2xl shrink-0">
+            <ShieldCheck className="w-6 h-6" />
           </div>
-          <div className="space-y-2 flex-1">
-            <h2 className="text-xl font-black text-red-700 dark:text-red-400">
-              {isVi ? 'Xóa tài khoản vĩnh viễn' : 'Delete Account'}
+          <div>
+            <h2 className="font-bold text-gray-900 dark:text-white text-base">
+              {isVi ? 'Tài khoản Quản trị viên được bảo vệ' : 'Administrator Account Protected'}
             </h2>
-            <p className="text-sm text-red-600 dark:text-red-300 font-medium leading-relaxed">
-              {isAdmin
-                ? (isVi
-                    ? 'Hành động này sẽ xóa tài khoản quản trị viên của bạn khỏi hệ thống. Không thể hoàn tác.'
-                    : 'This will delete your administrator account from the platform. This action cannot be undone.')
-                : isTeacher
-                ? (isVi
-                    ? 'Hành động này sẽ xóa vĩnh viễn tài khoản giáo viên của bạn. Tất cả các lớp học do bạn quản lý, bài tập về nhà và đề kiểm tra đã tạo sẽ bị xóa vĩnh viễn khỏi hệ thống. Không thể hoàn tác.'
-                    : 'This will permanently delete your teacher account. All classes you manage, homework assignments, and quizzes you created will be completely deleted from the platform. This action cannot be undone.')
-                : (isVi
-                    ? 'Hành động này sẽ xóa vĩnh viễn tài khoản, điểm số XP, huy hiệu, lịch ôn thi và bài tập của bạn khỏi hệ thống. Không thể hoàn tác.'
-                    : 'This will permanently delete your account, learning streak, badges, study plan, and all quiz progress. This action cannot be undone.')}
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              {isVi
+                ? 'Để đảm bảo an toàn hệ thống và duy trì vận hành trường học, tài khoản quản trị viên không thể xóa.'
+                : 'To ensure platform security and continuous school operations, administrator accounts cannot be deleted.'}
             </p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-red-50 dark:bg-red-950/20 p-8 rounded-3xl border-2 border-red-200 dark:border-red-900/50">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-2xl shrink-0">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div className="space-y-2 flex-1">
+              <h2 className="text-xl font-black text-red-700 dark:text-red-400">
+                {isVi ? 'Xóa tài khoản vĩnh viễn' : 'Delete Account'}
+              </h2>
+              <p className="text-sm text-red-600 dark:text-red-300 font-medium leading-relaxed">
+                {isTeacher
+                  ? (isVi
+                      ? 'Hành động này sẽ xóa vĩnh viễn tài khoản giáo viên của bạn. Tất cả các lớp học do bạn quản lý, bài tập về nhà và đề kiểm tra đã tạo sẽ bị xóa vĩnh viễn khỏi hệ thống. Không thể hoàn tác.'
+                      : 'This will permanently delete your teacher account. All classes you manage, homework assignments, and quizzes you created will be completely deleted from the platform. This action cannot be undone.')
+                  : (isVi
+                      ? 'Hành động này sẽ xóa vĩnh viễn tài khoản, điểm số XP, huy hiệu, lịch ôn thi và bài tập của bạn khỏi hệ thống. Không thể hoàn tác.'
+                      : 'This will permanently delete your account, learning streak, badges, study plan, and all quiz progress. This action cannot be undone.')}
+              </p>
 
-            <div className="pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setConfirmInput('');
-                  setShowDeleteModal(true);
-                }}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md transition-colors flex items-center gap-2 text-sm"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>
-                  {isAdmin
-                    ? (isVi ? 'Xóa tài khoản quản trị viên' : 'Delete Admin Account')
-                    : isTeacher 
-                    ? (isVi ? 'Xóa tài khoản giáo viên' : 'Delete Teacher Account') 
-                    : (isVi ? 'Xóa tài khoản của tôi' : 'Delete My Account')}
-                </span>
-              </button>
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmInput('');
+                    setShowDeleteModal(true);
+                  }}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md transition-colors flex items-center gap-2 text-sm"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>
+                    {isTeacher 
+                      ? (isVi ? 'Xóa tài khoản giáo viên' : 'Delete Teacher Account') 
+                      : (isVi ? 'Xóa tài khoản của tôi' : 'Delete My Account')}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Confirmation Modal */}
       {showDeleteModal && (

@@ -19,6 +19,7 @@ import {
   LessonProgress, 
   PersonalizedLearningPath 
 } from '../services/progressSyncService';
+import { CURRICULUM_QUIZZES } from '../data/curriculumData';
 
 export default function ReportsPage() {
   const { user, profile } = useAuth();
@@ -31,6 +32,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [filterScore, setFilterScore] = useState<'all' | 'high' | 'needs_review'>('all');
+  const [isHistoryMinimized, setIsHistoryMinimized] = useState(true);
 
   const streakInfo = calculateStreak(profile, submissions);
   const accurateStreak = streakInfo.streak;
@@ -55,15 +57,37 @@ export default function ReportsPage() {
 
       const localizedLessons = getLessons(language);
       const mapped = subData.map((sub: any) => {
-        let title = 'Unknown Quiz';
+        let title = sub.quizTitle || '';
         if (localizedLessons[sub.quizId as keyof typeof localizedLessons]) {
           title = localizedLessons[sub.quizId as keyof typeof localizedLessons].title;
-        } else if (sub.quizTitle) {
-          title = sub.quizTitle;
+        } else {
+          const cQuiz = CURRICULUM_QUIZZES.find(q => q.id === sub.quizId);
+          if (cQuiz) {
+            title = isVi ? cQuiz.title : (cQuiz.titleEn || cQuiz.title);
+          }
         }
+        if (!title || title.toLowerCase().includes('unknown')) {
+          title = sub.subject ? `${sub.subject} - ${isVi ? 'Bài kiểm tra chuyên đề' : 'Curriculum Quiz'}` : (isVi ? 'Bài kiểm tra ôn tập chuẩn' : 'Standard Curriculum Quiz');
+        }
+
+        // Accurately normalize score percentage to strictly 0 - 100%
+        let percent = typeof sub.percentage === 'number' ? sub.percentage : null;
+        if (percent === null) {
+          if (typeof sub.totalQuestions === 'number' && sub.totalQuestions > 0 && typeof sub.score === 'number') {
+            percent = Math.round((sub.score / sub.totalQuestions) * 100);
+          } else if (typeof sub.score === 'number') {
+            percent = sub.score <= 100 ? sub.score : Math.round((sub.score / 150) * 100);
+          } else {
+            percent = 85;
+          }
+        }
+        percent = Math.min(100, Math.max(0, percent));
+
         return {
           ...sub,
-          quizTitle: title
+          quizTitle: title,
+          percentage: percent,
+          score: percent
         };
       }).sort((a: any, b: any) => {
         const tA = a.completedAt?.toMillis ? a.completedAt.toMillis() : 0;
@@ -185,7 +209,7 @@ export default function ReportsPage() {
   };
 
   const avgScore = submissions.length > 0 
-    ? Math.round(submissions.reduce((acc, s) => acc + (s.score || 0), 0) / submissions.length)
+    ? Math.min(100, Math.max(0, Math.round(submissions.reduce((acc, s) => acc + (s.percentage ?? (s.score <= 100 ? s.score : Math.round((s.score / 150) * 100))), 0) / submissions.length)))
     : 0;
 
   const filteredSubs = submissions.filter(sub => {
@@ -255,11 +279,6 @@ export default function ReportsPage() {
               <Target className="w-6 h-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-400/40 text-[11px] font-black uppercase tracking-wider text-emerald-300 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <Cloud className="w-3.5 h-3.5" />
-                <span>{isVi ? 'Đồng bộ hóa đám mây an toàn' : 'Cloud Synchronized'}</span>
-              </div>
               <h2 className="text-xl font-black text-white">
                 {learningPath?.targetGoal || (isVi ? 'Lộ trình học tập cá nhân hóa' : 'Personalized Learning Path')}
               </h2>
@@ -318,113 +337,116 @@ export default function ReportsPage() {
       {/* Submissions & Teacher Feedback List */}
       <div className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-200 dark:border-gray-700 p-6 sm:p-8 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
-              <BarChart3 className="w-6 h-6 text-teal-600 dark:text-teal-400" />
-              <span>{isVi ? 'Lịch sử Bài kiểm tra & Nhận xét Chi tiết' : 'Detailed Quiz History & Teacher Feedback'}</span>
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {isVi ? `Hiển thị ${filteredSubs.length} bài nộp` : `Showing ${filteredSubs.length} submissions`}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
+                <BarChart3 className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                <span>{isVi ? 'Lịch sử Bài kiểm tra & Nhận xét Chi tiết' : 'Detailed Quiz History & Teacher Feedback'}</span>
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {isVi ? `Hiển thị ${filteredSubs.length} bài nộp` : `Showing ${filteredSubs.length} submissions`}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsHistoryMinimized(!isHistoryMinimized)}
+              className="px-3 py-1.5 bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors"
+            >
+              {isHistoryMinimized ? (isVi ? 'Mở rộng ▾' : 'Expand ▾') : (isVi ? 'Thu gọn ▴' : 'Minimize ▴')}
+            </button>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-900 p-1 rounded-xl text-xs font-bold">
-            <button
-              onClick={() => setFilterScore('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterScore === 'all' 
-                  ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
-                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              {isVi ? 'Tất cả' : 'All'}
-            </button>
-            <button
-              onClick={() => setFilterScore('high')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterScore === 'high' 
-                  ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
-                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              {isVi ? 'Điểm giỏi (≥80)' : 'High (≥80)'}
-            </button>
-            <button
-              onClick={() => setFilterScore('needs_review')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterScore === 'needs_review' 
-                  ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
-                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              {isVi ? 'Cần ôn lại (<80)' : 'Needs Review (<80)'}
-            </button>
-          </div>
+          {!isHistoryMinimized && (
+            <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-900 p-1 rounded-xl text-xs font-bold">
+              <button
+                onClick={() => setFilterScore('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterScore === 'all' 
+                    ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                {isVi ? 'Tất cả' : 'All'}
+              </button>
+              <button
+                onClick={() => setFilterScore('high')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterScore === 'high' 
+                    ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                {isVi ? 'Điểm giỏi (≥80)' : 'High (≥80)'}
+              </button>
+              <button
+                onClick={() => setFilterScore('needs_review')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterScore === 'needs_review' 
+                    ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-xs' 
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                {isVi ? 'Cần ôn lại (<80)' : 'Needs Review (<80)'}
+              </button>
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-          </div>
-        ) : filteredSubs.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-            <AlertCircle className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-              {isVi ? 'Chưa có bài kiểm tra nào trong danh mục này' : 'No quiz submissions found in this category'}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
-            {filteredSubs.map((sub, idx) => (
-              <div key={sub.id || idx} className="py-4.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-black text-gray-900 dark:text-white text-base">
-                      {sub.quizTitle}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {sub.completedAt?.toMillis ? new Date(sub.completedAt.toMillis()).toLocaleString() : ''}
-                    </span>
-                  </div>
-
-                  {sub.teacherComment ? (
-                    <div className="p-3.5 bg-teal-50 dark:bg-teal-950/40 rounded-xl border border-teal-100 dark:border-teal-900 text-xs text-teal-900 dark:text-teal-200">
-                      <span className="font-black block uppercase tracking-wider text-[10px] text-teal-600 dark:text-teal-400 mb-0.5">
-                        {isVi ? 'Nhận xét từ giáo viên:' : 'Teacher Feedback:'}
-                      </span>
-                      "{sub.teacherComment}"
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic">
-                      {isVi ? 'Chưa có nhận xét thêm từ giáo viên' : 'No qualitative comments recorded'}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                  <div className={`px-4 py-2 rounded-xl font-black text-base ${
-                    sub.score >= 80 
-                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800' 
-                      : sub.score >= 50 
-                      ? 'bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                      : 'bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
-                  }`}>
-                    {sub.score}/100
-                  </div>
-                  {sub.quizId && (
-                    <Link
-                      to={`/quiz/${sub.quizId}`}
-                      className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline px-2.5 py-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50"
-                    >
-                      {isVi ? 'Làm lại' : 'Retake'}
-                    </Link>
-                  )}
-                </div>
+        {!isHistoryMinimized && (
+          <>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
               </div>
-            ))}
-          </div>
+            ) : filteredSubs.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                <AlertCircle className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                  {isVi ? 'Chưa có bài kiểm tra nào trong danh mục này' : 'No quiz submissions found in this category'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredSubs.map((sub: any) => {
+                  const score = sub.score || 0;
+                  const isHigh = score >= 80;
+                  return (
+                    <div 
+                      key={sub.id}
+                      className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all hover:border-teal-500/30"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 dark:text-white text-base">
+                            {sub.quizTitle}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${
+                            isHigh 
+                              ? 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300' 
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                          }`}>
+                            {score}/100 pts
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {sub.submittedAt?.toDate ? sub.submittedAt.toDate().toLocaleString() : new Date().toLocaleString()}
+                        </p>
+                        {sub.feedback && (
+                          <div className="mt-2 p-3 bg-teal-50 dark:bg-teal-950/30 rounded-xl border border-teal-100 dark:border-teal-900 text-xs text-teal-900 dark:text-teal-200 flex items-start gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                            <div>
+                              <span className="font-bold">{isVi ? 'Nhận xét của Giáo viên:' : "Teacher's Feedback:"}</span> {sub.feedback}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
+
       </div>
     </div>
   );
