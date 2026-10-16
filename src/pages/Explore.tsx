@@ -39,11 +39,7 @@ import { QuizDownloadButton } from '../components/QuizDownloadButton';
 import { QuizA4PdfButton } from '../components/QuizA4PdfButton';
 import { 
   subscribeStudentProgress, 
-  subscribePersonalizedLearningPath, 
-  initializeStudentLearningPath,
-  updateLearningPathSettings,
-  LessonProgress, 
-  PersonalizedLearningPath 
+  LessonProgress 
 } from '../services/progressSyncService';
 import { 
   GRADE_LEVELS, 
@@ -58,6 +54,9 @@ import {
   CurriculumPDF 
 } from '../data/curriculumData';
 import { PDFLearningViewer } from '../components/PDFLearningViewer';
+import HistoryStudyHub from '../components/HistoryStudyHub';
+import { HistoryGeographySubNav, SubsystemType } from '../components/HistoryGeographySubNav';
+import StudyPlanner from '../components/StudyPlanner';
 
 // Helper to render grade-appropriate icons
 const renderSubjectIcon = (iconName: string, className = "w-5 h-5") => {
@@ -99,6 +98,19 @@ export default function Explore() {
   const [testSubTab, setTestSubTab] = useState<'all' | 'regular' | 'midterm' | 'final' | 'pdfs'>('all');
   const [showGradeInfo, setShowGradeInfo] = useState<boolean>(false);
 
+  // Subsystem state for History vs Geography (GDPT 2018): 'history' | 'geography'
+  const initialSubsystem = (searchParams.get('subsystem') as SubsystemType) || 'history';
+  const [historyGeoSubsystem, setHistoryGeoSubsystem] = useState<SubsystemType>(initialSubsystem);
+
+  const handleSubsystemChange = (sub: SubsystemType) => {
+    setHistoryGeoSubsystem(sub);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('subsystem', sub);
+      return next;
+    }, { replace: true });
+  };
+
   // Synchronize URL search params when subject or semester changes
   const handleSelectSubject = (subjCategory: string) => {
     setSelectedSubject(subjCategory);
@@ -107,8 +119,14 @@ export default function Explore() {
       const next = new URLSearchParams(prev);
       if (subjCategory === 'all') {
         next.delete('subject');
+        next.delete('subsystem');
       } else {
         next.set('subject', subjCategory);
+        if (subjCategory.includes('history') || subjCategory.includes('geo')) {
+          next.set('subsystem', historyGeoSubsystem);
+        } else {
+          next.delete('subsystem');
+        }
       }
       return next;
     }, { replace: true });
@@ -130,13 +148,24 @@ export default function Explore() {
     }
   }, [profile?.grade]);
 
+  // Main Tab state: 'curriculum' (Môn học & Đề thi) or 'planner' (Lịch ôn thi)
+  const initialTab = searchParams.get('tab') === 'planner' ? 'planner' : 'curriculum';
+  const [exploreMainTab, setExploreMainTab] = useState<'curriculum' | 'planner'>(initialTab);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'planner') {
+      setExploreMainTab('planner');
+    } else {
+      setExploreMainTab('curriculum');
+    }
+  }, [searchParams]);
+
   // Selected PDF viewer modal
   const [activeViewingPDF, setActiveViewingPDF] = useState<CurriculumPDF | null>(null);
 
   // Real-time Cloud Progress state
   const [progressList, setProgressList] = useState<LessonProgress[]>([]);
-  const [learningPath, setLearningPath] = useState<PersonalizedLearningPath | null>(null);
-  const [savingSettings, setSavingSettings] = useState(false);
 
   // Subscribe to real-time Cloud Storage for student progress
   useEffect(() => {
@@ -147,21 +176,9 @@ export default function Explore() {
       if (!isCancelled) setProgressList(list);
     });
 
-    const unsubPath = subscribePersonalizedLearningPath(user.uid, (path) => {
-      if (isCancelled) return;
-      if (!path) {
-        initializeStudentLearningPath(user.uid, selectedGrade, isVi).then(newPath => {
-          if (!isCancelled) setLearningPath(newPath);
-        });
-      } else {
-        setLearningPath(path);
-      }
-    });
-
     return () => {
       isCancelled = true;
       unsubProgress();
-      unsubPath();
     };
   }, [user?.uid, selectedGrade, isVi]);
 
@@ -216,8 +233,21 @@ export default function Explore() {
   // Filter quizzes by active subject using authoritative subject matching
   const currentSubjectQuizzes = useMemo(() => {
     if (selectedSubject === 'all' || !activeSubjectObj) return semesterQuizzes;
-    return semesterQuizzes.filter(q => isQuizForSubject(q, activeSubjectObj));
-  }, [semesterQuizzes, selectedSubject, activeSubjectObj]);
+    const base = semesterQuizzes.filter(q => isQuizForSubject(q, activeSubjectObj));
+    
+    // Subsystem separation for integrated History & Geography
+    if (activeSubjectObj.id.includes('history-geo') || activeSubjectObj.id.includes('hisgeo')) {
+      return base.filter(q => {
+        const titleLower = (q.title + ' ' + (q.description || '')).toLowerCase();
+        if (historyGeoSubsystem === 'history') {
+          return titleLower.includes('lịch sử') || titleLower.includes('nguyên thủy') || titleLower.includes('văn minh') || titleLower.includes('bắc thuộc') || titleLower.includes('lý') || titleLower.includes('trần') || !titleLower.includes('địa l');
+        } else {
+          return titleLower.includes('địa lí') || titleLower.includes('địa lý') || titleLower.includes('bản đồ') || titleLower.includes('tọa độ') || titleLower.includes('khí quyển') || titleLower.includes('thủy quyển') || titleLower.includes('khoáng sản') || titleLower.includes('châu á') || titleLower.includes('châu âu');
+        }
+      });
+    }
+    return base;
+  }, [semesterQuizzes, selectedSubject, activeSubjectObj, historyGeoSubsystem]);
 
   // Filter PDFs by active subject
   const currentSubjectPDFs = useMemo(() => {
@@ -283,21 +313,56 @@ export default function Explore() {
     });
   }, [gradeSubjects, selectedGrade, progressList, isVi, semesterQuizzes]);
 
-  const handlePaceChange = async (newMinutes: number) => {
-    if (!user?.uid || !learningPath) return;
-    setSavingSettings(true);
-    try {
-      await updateLearningPathSettings(user.uid, { dailyPaceMinutes: newMinutes });
-      setLearningPath(prev => prev ? { ...prev, dailyPaceMinutes: newMinutes } : null);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSavingSettings(false);
-    }
-  };
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-32 sm:pb-36 animate-fade-in">
+      
+      {/* Main Tab Switcher: Môn học vs Lịch ôn thi (Gộp mục Lịch ôn thi vào trang Học tập) */}
+      <div className="flex items-center gap-2 p-1.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xs w-fit">
+        <button
+          onClick={() => {
+            setExploreMainTab('curriculum');
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.delete('tab');
+              return next;
+            }, { replace: true });
+          }}
+          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            exploreMainTab === 'curriculum'
+              ? 'bg-teal-600 text-white shadow-md'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>{isVi ? 'Môn học & Đề kiểm tra' : 'Subjects & Assessments'}</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setExploreMainTab('planner');
+            setSearchParams(prev => {
+              const next = new URLSearchParams(prev);
+              next.set('tab', 'planner');
+              return next;
+            }, { replace: true });
+          }}
+          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            exploreMainTab === 'planner'
+              ? 'bg-teal-600 text-white shadow-md'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>{isVi ? 'Lịch ôn thi' : 'Study Planner'}</span>
+        </button>
+      </div>
+
+      {exploreMainTab === 'planner' ? (
+        <div className="animate-fade-in">
+          <StudyPlanner />
+        </div>
+      ) : (
+        <>
       
       {/* Top Banner - Clean, responsive, non-overlapping header */}
       <div className="bg-white dark:bg-gray-800 p-6 sm:p-7 rounded-[2rem] shadow-xs border-2 border-gray-100 dark:border-gray-700/80">
@@ -397,20 +462,16 @@ export default function Explore() {
       {/* SUBJECT TABS BAR ("mỗi môn sẽ chuyển sang tab đúng với môn đó") */}
       {/* ============================================================== */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            <span>{isVi ? 'Chọn tab môn học để xem đề thi & tài liệu:' : 'Select subject tab to view exams & PDFs:'}</span>
-          </span>
-          {selectedSubject !== 'all' && (
+        {selectedSubject !== 'all' && (
+          <div className="flex justify-end px-1">
             <button
               onClick={() => handleSelectSubject('all')}
               className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 cursor-pointer"
             >
-              <span>{isVi ? 'Xem tất cả môn' : 'View all subjects'}</span>
+              <span>{isVi ? '← Xem tất cả môn học' : '← View all subjects'}</span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Horizontal Subject Tab Buttons */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
@@ -462,23 +523,31 @@ export default function Explore() {
       {/* ========================================================================= */}
       {selectedSubject !== 'all' && (
         <div className="space-y-8 animate-fade-in">
-          
-          {/* Active Subject Banner */}
-          {activeSubjectObj && (
-            <div className={`p-6 sm:p-7 rounded-3xl border-2 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeSubjectObj.color}`}>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
-                  {renderSubjectIcon(activeSubjectObj.iconName, 'w-7 h-7')}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200">
-                      HK{selectedSemester} • {currentGradeInfo.nameVi}
-                    </span>
-                    <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {midtermQuizzes.length} {isVi ? 'Đề Giữa kỳ' : 'Midterm'} • {regularQuizzes.length} {isVi ? 'Đề Thường xuyên' : 'Regular'}
-                    </span>
-                  </div>
+          {/* PHẦN 2: CẤU TRÚC MÔN LỊCH SỬ VÀ ĐỊA LÍ LỚP 6: PHÂN CHIA THÀNH 2 PHÂN HỆ RÕ RÀNG */}
+          {selectedGrade === 6 && (selectedSubject === 'g6-history-geo' || activeSubjectObj?.id === 'g6-history-geo' || (activeSubjectObj?.category === 'social' && !activeSubjectObj?.id.includes('civic'))) ? (
+            <HistoryStudyHub 
+              initialSubsystem={historyGeoSubsystem}
+              activeSubsystem={historyGeoSubsystem}
+              onSubsystemChange={handleSubsystemChange}
+            />
+          ) : (
+            <>
+              {/* Active Subject Banner */}
+              {activeSubjectObj && (
+                <div className={`p-6 sm:p-7 rounded-3xl border-2 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeSubjectObj.color}`}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
+                      {renderSubjectIcon(activeSubjectObj.iconName, 'w-7 h-7')}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200">
+                          HK{selectedSemester} • {currentGradeInfo.nameVi}
+                        </span>
+                        <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
+                          {midtermQuizzes.length} {isVi ? 'Đề Giữa kỳ' : 'Midterm'} • {regularQuizzes.length} {isVi ? 'Đề Thường xuyên' : 'Regular'}
+                        </span>
+                      </div>
                   <h2 className="text-2xl font-black text-gray-900 dark:text-white">
                     {isVi ? activeSubjectObj.nameVi : activeSubjectObj.nameEn}
                   </h2>
@@ -542,6 +611,17 @@ export default function Explore() {
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Dedicated Subsystem Switch for History & Geography Modules */}
+          {activeSubjectObj && (activeSubjectObj.id.includes('history-geo') || activeSubjectObj.id.includes('hisgeo')) && (
+            <HistoryGeographySubNav 
+              activeSubsystem={historyGeoSubsystem}
+              onSubsystemChange={handleSubsystemChange}
+              grade={selectedGrade}
+              semester={selectedSemester}
+              variant="banner"
+            />
           )}
 
           {/* ============================================================== */}
@@ -937,6 +1017,8 @@ export default function Explore() {
             </div>
           )}
 
+            </>
+          )}
         </div>
       )}
 
@@ -1030,116 +1112,11 @@ export default function Explore() {
             </div>
           </div>
 
-          {/* Personalized Learning Path Hub */}
-          {learningPath && (
-            <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 rounded-[2.5rem] p-6 sm:p-9 text-white shadow-xl border-2 border-indigo-700/50">
-              <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/10 backdrop-blur-md text-indigo-200 text-xs font-black uppercase tracking-wider mb-2">
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>{isVi ? 'Lộ trình học tập cá nhân hóa' : 'Personalized Learning Path'}</span>
-                    </div>
-                    <h2 className="text-xl sm:text-2xl font-black text-white">
-                      {learningPath.targetGoal}
-                    </h2>
-                  </div>
-
-                  {/* Study Pace Selector */}
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 border border-white/10">
-                    <div className="text-[11px] font-bold text-indigo-200 mb-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{isVi ? 'Mục tiêu học mỗi ngày:' : 'Daily Pace Goal:'}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {[15, 30, 45, 60].map((mins) => (
-                        <button
-                          key={mins}
-                          onClick={() => handlePaceChange(mins)}
-                          disabled={savingSettings}
-                          className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                            learningPath.dailyPaceMinutes === mins
-                              ? 'bg-amber-400 text-gray-900 shadow-md scale-105'
-                              : 'bg-white/10 hover:bg-white/20 text-white'
-                          }`}
-                        >
-                          {mins}m
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-2 bg-white/5 rounded-2xl p-4 border border-white/10">
-                  <div className="flex justify-between text-xs font-black">
-                    <span className="text-indigo-200 uppercase tracking-wider">
-                      {isVi ? 'Tiến độ hoàn thành lộ trình' : 'Overall Path Completion'}
-                    </span>
-                    <span className="text-amber-300 text-base">{learningPath.overallProgress}%</span>
-                  </div>
-                  <div className="w-full bg-black/30 rounded-full h-3 p-0.5 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${Math.max(5, learningPath.overallProgress)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Milestones */}
-                <div>
-                  <h3 className="text-xs font-black text-indigo-200 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Award className="w-4 h-4 text-amber-300" />
-                    <span>{isVi ? 'Các chặng mục tiêu (Milestones)' : 'Learning Milestones'}</span>
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {learningPath.milestones.map((ms, idx) => (
-                      <div 
-                        key={ms.id}
-                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                          ms.completed 
-                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-100'
-                            : 'bg-white/10 hover:bg-white/15 border-white/10 text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${
-                            ms.completed ? 'bg-emerald-500 text-white' : 'bg-white/20 text-indigo-200'
-                          }`}>
-                            {ms.completed ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
-                          </div>
-                          <div className="truncate">
-                            <div className="font-bold text-xs truncate">{ms.title}</div>
-                            <div className="text-[10px] text-indigo-200/80 flex items-center gap-2">
-                              <span>{ms.subject}</span>
-                              <span>•</span>
-                              <span className="text-amber-300 font-bold">+{ms.xpReward} XP</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => navigate(`/quiz/${ms.lessonId}?mode=review`)}
-                          className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                            ms.completed
-                              ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/30'
-                              : 'bg-white hover:bg-gray-100 text-gray-900 shadow-xs'
-                          }`}
-                        >
-                          {ms.completed 
-                            ? (isVi ? 'Ôn lại' : 'Review') 
-                            : (isVi ? 'Học ngay' : 'Start')}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
         </div>
+      )}
+
+      {/* Close Curriculum View Fragment */}
+      </>
       )}
 
       {/* PDF Learning Viewer Modal */}

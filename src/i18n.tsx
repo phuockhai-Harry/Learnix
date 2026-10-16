@@ -159,7 +159,7 @@ export const translations: Translations = {
 
   // Layout Sidebar
   'layout.dashboard': { en: 'Dashboard', vi: 'Bảng điều khiển' },
-  'layout.explore': { en: 'Explore', vi: 'Khám phá' },
+  'layout.explore': { en: 'Learning', vi: 'Học tập' },
   'layout.practice': { en: 'Practice', vi: 'Luyện tập' },
   'layout.tutor': { en: 'Gemini AI Tutor', vi: 'Gia sư Gemini AI' },
   'layout.flashcards': { en: 'Flashcards', vi: 'Thẻ ghi nhớ' },

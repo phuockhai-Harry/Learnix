@@ -942,6 +942,33 @@ export default function QuizRunner() {
           <MathMarkdown content={currentQ.question} />
         </h3>
 
+        {/* Drag & Drop Visual Matching Panel if question is interactive drag_drop */}
+        {currentQ.dragPairs && currentQ.slots && (
+          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-3">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 block">
+              🧩 Các mục thông tin cần kéo thả ghép nối vào ô đúng:
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Thông tin / Sự kiện / Hiện vật:</span>
+                {currentQ.dragPairs.map((p: any, pi: number) => (
+                  <div key={pi} className="p-2 rounded-xl bg-white dark:bg-gray-800 border border-amber-200/60 text-gray-800 dark:text-gray-200 font-semibold shadow-2xs">
+                    {pi + 1}. {p.item}
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Các ô phân loại cần thả vào:</span>
+                {currentQ.slots.map((s: string, si: number) => (
+                  <div key={si} className="p-2 rounded-xl bg-amber-100/70 dark:bg-amber-900/40 border border-amber-300 text-amber-900 dark:text-amber-200 font-bold">
+                    [Ô {si + 1}]: {s}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Options Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           {currentQ.options.map((opt: string, idx: number) => {

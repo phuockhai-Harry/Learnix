@@ -35,16 +35,11 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
       icon: <Home className="w-4 h-4 shrink-0" />, 
       roles: ['student', 'teacher', 'admin'] 
     },
-    // Student-exclusive learning taskbar items
-    { path: '/explore', label: t('layout.explore'), icon: <Compass className="w-4 h-4 shrink-0" />, roles: ['student'] },
+    { path: '/explore', label: isVi ? 'Học tập' : 'Learning', icon: <BookOpen className="w-4 h-4 shrink-0" />, roles: ['student'] },
     { path: '/practice', label: t('layout.practice'), icon: <Target className="w-4 h-4 shrink-0" />, roles: ['student'] },
     { path: '/classes', label: t('layout.classes'), icon: <Users className="w-4 h-4 text-blue-600 shrink-0" />, roles: ['student'] },
-    { path: '/study-rooms', label: t('layout.studyRooms'), icon: <Users className="w-4 h-4 text-teal-600 shrink-0" />, roles: ['student', 'teacher'] },
+    { path: '/study-rooms', label: t('layout.studyRooms'), icon: <MessageSquare className="w-4 h-4 text-teal-600 shrink-0" />, roles: ['student', 'teacher'] },
     { path: '/tutor', label: t('layout.tutor'), icon: <Bot className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />, roles: ['student'] },
-    { path: '/flashcards', label: t('layout.flashcards'), icon: <BookOpen className="w-4 h-4 shrink-0" />, roles: ['student'] },
-    { path: '/planner', label: t('layout.planner'), icon: <Calendar className="w-4 h-4 shrink-0" />, roles: ['student'] },
-    { path: '/achievements', label: t('layout.achievements'), icon: <Trophy className="w-4 h-4 shrink-0" />, roles: ['student'] },
-    { path: '/reports', label: t('layout.reports'), icon: <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />, roles: ['student'] },
     
     // Teacher-exclusive tools
     { path: '/quiz/create', label: isVi ? 'Tạo câu hỏi' : 'Create Quiz', icon: <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />, roles: ['teacher'] },
@@ -315,8 +310,20 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
             }`}
           >
-            <Compass className="w-5 h-5 shrink-0" />
-            <span className="truncate mt-0.5">{t('layout.explore')}</span>
+            <BookOpen className="w-5 h-5 shrink-0" />
+            <span className="truncate mt-0.5">{isVi ? 'Học tập' : 'Learning'}</span>
+          </Link>
+
+          <Link
+            to="/practice"
+            className={`flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold transition-colors ${
+              location.pathname === '/practice'
+                ? 'text-teal-600 dark:text-teal-400 font-black'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
+            }`}
+          >
+            <Target className="w-5 h-5 shrink-0" />
+            <span className="truncate mt-0.5">{t('layout.practice')}</span>
           </Link>
 
           <Link
@@ -341,18 +348,6 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           >
             <MessageSquare className="w-5 h-5 shrink-0" />
             <span className="truncate mt-0.5">{t('layout.studyRooms')}</span>
-          </Link>
-
-          <Link
-            to="/flashcards"
-            className={`flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold transition-colors ${
-              location.pathname === '/flashcards'
-                ? 'text-teal-600 dark:text-teal-400 font-black'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
-            }`}
-          >
-            <BookOpen className="w-5 h-5 shrink-0" />
-            <span className="truncate mt-0.5">{t('layout.flashcards')}</span>
           </Link>
         </nav>
       )}

@@ -66,7 +66,126 @@ export default function QuizCreator() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('creator.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('creator.title')}</h1>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+          Thiết lập câu hỏi kiểm tra đánh giá hoặc áp dụng quy chuẩn tự động Bộ Giáo dục & Đào tạo cho môn Lịch sử 6.
+        </p>
+
+        {/* Quy chuẩn tạo đề kiểm tra Lịch sử 6 Bộ GD&ĐT */}
+        <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-200 dark:border-amber-800 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🏛️</span>
+            <span className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">
+              Quy tắc tạo đề Lịch sử 6 chuẩn Bộ GD&ĐT (Tự động tải mẫu):
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTitle('Lịch sử 6 - Đề Kiểm Tra Thường Xuyên (15 phút)');
+                const qs: any[] = [];
+                for (let i = 1; i <= 15; i++) {
+                  qs.push({
+                    question: `[Câu ${i} - MCQ] Kiến thức Lịch sử 6 bài học trọng tâm số ${i}...`,
+                    options: ['Phương án đúng A', 'Phương án gây nhiễu B', 'Phương án gây nhiễu C', 'Phương án gây nhiễu D'],
+                    answerIndex: 0
+                  });
+                }
+                qs.push({
+                  question: `[Câu 16 - Đúng/Sai] Nhận định về nguồn gốc loài người và tư liệu hiện vật là đúng hay sai?`,
+                  options: ['Đúng (True)', 'Sai (False)'],
+                  answerIndex: 0
+                });
+                qs.push({
+                  question: `[Câu 17 - Đúng/Sai] Phát hiện rìu tay sơ kỳ đồ đá cũ ở An Khê chứng minh dấu tích người tối cổ tại Việt Nam?`,
+                  options: ['Đúng (True)', 'Sai (False)'],
+                  answerIndex: 0
+                });
+                for (let i = 1; i <= 3; i++) {
+                  qs.push({
+                    question: `[Câu ${17 + i} - Tự luận kéo thả] Kéo thả tên di tích/khái niệm vào ô đúng tương ứng (Tự luận tương tác số ${i}):`,
+                    options: ['Ghép nối chính xác vào ô đúng A', 'Ghép nối vào ô B', 'Ghép nối vào ô C', 'Ghép nối vào ô D'],
+                    answerIndex: 0
+                  });
+                }
+                setQuestions(qs);
+              }}
+              className="p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-left text-xs font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs"
+            >
+              <div className="font-black text-amber-700 dark:text-amber-300">📝 Thường xuyên (20 câu)</div>
+              <div className="text-[10px] text-gray-500 mt-0.5">15 MCQ + 2 Đúng/Sai + 3 Kéo thả</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTitle('Lịch sử 6 - Đề Kiểm Tra Giữa Học Kỳ (45 phút)');
+                const qs: any[] = [];
+                for (let i = 1; i <= 20; i++) {
+                  qs.push({
+                    question: `[Câu ${i} - MCQ] Đánh giá kiến thức Lịch sử 6 Giữa kỳ câu số ${i}...`,
+                    options: ['Phương án đúng', 'Phương án gây nhiễu 1', 'Phương án gây nhiễu 2', 'Phương án gây nhiễu 3'],
+                    answerIndex: 0
+                  });
+                }
+                for (let i = 1; i <= 5; i++) {
+                  qs.push({
+                    question: `[Câu ${20 + i} - Đúng/Sai] Đánh giá nhận định lịch sử cổ đại số ${i}: Đúng hay Sai?`,
+                    options: ['Đúng (True)', 'Sai (False)'],
+                    answerIndex: 0
+                  });
+                }
+                for (let i = 1; i <= 5; i++) {
+                  qs.push({
+                    question: `[Câu ${25 + i} - Tự luận kéo thả] Kéo thả các dữ kiện lịch sử văn minh cổ đại vào niên biểu đúng (Tự luận ${i}):`,
+                    options: ['Khớp đúng dữ kiện niên biểu A', 'Khớp dữ kiện B', 'Khớp dữ kiện C', 'Khớp dữ kiện D'],
+                    answerIndex: 0
+                  });
+                }
+                setQuestions(qs);
+              }}
+              className="p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-left text-xs font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs"
+            >
+              <div className="font-black text-indigo-700 dark:text-indigo-300">🎯 Giữa kỳ (30 câu)</div>
+              <div className="text-[10px] text-gray-500 mt-0.5">20 MCQ + 5 Đúng/Sai + 5 Kéo thả</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTitle('Lịch sử 6 - Đề Kiểm Tra Cuối Học Kỳ (60 phút)');
+                const qs: any[] = [];
+                for (let i = 1; i <= 25; i++) {
+                  qs.push({
+                    question: `[Câu ${i} - MCQ] Kiến thức tổng hợp Lịch sử 6 Cuối kỳ câu số ${i}...`,
+                    options: ['Phương án chính xác', 'Phương án gây nhiễu 1', 'Phương án gây nhiễu 2', 'Phương án gây nhiễu 3'],
+                    answerIndex: 0
+                  });
+                }
+                for (let i = 1; i <= 10; i++) {
+                  qs.push({
+                    question: `[Câu ${25 + i} - Đúng/Sai] Đánh giá nhận định lịch sử tổng kết số ${i}: Đúng hay Sai?`,
+                    options: ['Đúng (True)', 'Sai (False)'],
+                    answerIndex: 0
+                  });
+                }
+                for (let i = 1; i <= 7; i++) {
+                  qs.push({
+                    question: `[Câu ${35 + i} - Tự luận kéo thả] Kéo thả thông tin các triều đại và thành tựu văn minh vào bảng tổng kết (Tự luận ${i}):`,
+                    options: ['Ghép nối bảng tổng kết chính xác A', 'Ghép nối B', 'Ghép nối C', 'Ghép nối D'],
+                    answerIndex: 0
+                  });
+                }
+                setQuestions(qs);
+              }}
+              className="p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-left text-xs font-bold text-amber-900 dark:text-amber-200 transition-all cursor-pointer shadow-xs"
+            >
+              <div className="font-black text-amber-700 dark:text-amber-300">🏆 Cuối kỳ (Đúng 42 câu)</div>
+              <div className="text-[10px] text-gray-500 mt-0.5">Đúng 25 MCQ + 10 Đúng/Sai + 7 Kéo thả</div>
+            </button>
+          </div>
+        </div>
         
         <form onSubmit={handleSave} className="space-y-6">
           <div>

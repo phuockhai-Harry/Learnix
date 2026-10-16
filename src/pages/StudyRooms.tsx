@@ -7,7 +7,6 @@ import {
 import { useAuth } from '../auth';
 import { useLanguage } from '../i18n';
 import { useToast } from '../context/ToastContext';
-import PomodoroTimer from '../components/PomodoroTimer';
 import { db } from '../firebase';
 import { 
   collection, query, where, orderBy, limit, onSnapshot, 
@@ -528,24 +527,6 @@ export default function StudyRooms() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Handle Pomodoro status sync with peer presence
-  const handlePomodoroStatusChange = async (newStatus: 'studying' | 'online') => {
-    if (!user) return;
-    try {
-      const presenceDocRef = doc(db, 'studyRoomPresence', `${selectedRoomId}_${user.uid}`);
-      await setDoc(presenceDocRef, {
-        roomId: selectedRoomId,
-        userId: user.uid,
-        userName: myName,
-        userRole: myRole,
-        status: newStatus,
-        lastActive: serverTimestamp(),
-        grade: profile?.grade || 6
-      }, { merge: true });
-    } catch (e) {
-      console.error('Error syncing Pomodoro status:', e);
-    }
-  };
 
   const filteredRooms = STUDY_ROOMS.filter(r => {
     const q = searchFilter.toLowerCase();
@@ -599,11 +580,6 @@ export default function StudyRooms() {
         </div>
       </div>
 
-      {/* Pomodoro Focus Timer Card for Deep-Work Study Sessions */}
-      <PomodoroTimer 
-        onStatusChange={handlePomodoroStatusChange}
-        defaultExpanded={true}
-      />
 
       {/* Main Study Room Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -356,13 +356,31 @@ Please generate a personalized exam preparation strategy and schedule guidance.`
   // Serve public assets directly
   app.use(express.static(path.join(process.cwd(), 'public')));
 
-  let vite: any = null;
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  // Route /live upgrades to our Gemini Live WebSocketServer
+  server.on("upgrade", (request, socket, head) => {
+    try {
+      const urlObj = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+      if (urlObj.pathname === "/live") {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit("connection", ws, request);
+        });
+      }
+    } catch (err) {
+      try { socket.destroy(); } catch { /* ignore */ }
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    vite = await createViteServer({
+    const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: false,
+        hmr: {
+          server,
+        },
       },
       appType: "spa",
     });
@@ -375,26 +393,6 @@ Please generate a personalized exam preparation strategy and schedule guidance.`
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-
-  const server = http.createServer(app);
-  const wss = new WebSocketServer({ noServer: true });
-
-  server.on("upgrade", (request, socket, head) => {
-    try {
-      const urlObj = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
-      if (urlObj.pathname === "/live") {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-          wss.emit("connection", ws, request);
-        });
-      } else if (vite && vite.ws) {
-        vite.ws.handleUpgrade(request, socket, head);
-      } else {
-        socket.destroy();
-      }
-    } catch (err) {
-      socket.destroy();
-    }
-  });
 
   // Real-time Voice Conversations via Gemini Live API (gemini-3.8-live)
   wss.on("connection", async (clientWs: WebSocket, req: http.IncomingMessage) => {

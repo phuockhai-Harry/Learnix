@@ -11,16 +11,10 @@ import {
   Cloud, Target, CheckCircle2
 } from 'lucide-react';
 import { getLessons } from '../data/lessons';
-import { BADGES } from '../data/badges';
 import { HomeworkChat } from '../components/HomeworkChat';
 import { calculateStreak } from '../lib/streak';
 import { useToast } from '../context/ToastContext';
 import { RecentActivityFeed } from '../components/RecentActivityFeed';
-import { 
-  subscribePersonalizedLearningPath, 
-  initializeStudentLearningPath, 
-  PersonalizedLearningPath 
-} from '../services/progressSyncService';
 import { CURRICULUM_QUIZZES, getSubjectsForGrade } from '../data/curriculumData';
 
 
@@ -31,7 +25,6 @@ export default function StudentDashboard() {
   const isVi = language === 'vi';
 
   const [mySubmissions, setMySubmissions] = useState<any[]>([]);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joinedClasses, setJoinedClasses] = useState<any[]>([]);
   const [joinCodeInput, setJoinCodeInput] = useState('');
@@ -39,7 +32,6 @@ export default function StudentDashboard() {
   const [joinError, setJoinError] = useState('');
   const [homeworks, setHomeworks] = useState<any[]>([]);
   const [activeChatHomework, setActiveChatHomework] = useState<any | null>(null);
-  const [learningPath, setLearningPath] = useState<PersonalizedLearningPath | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
   const [syncPulse, setSyncPulse] = useState(false);
 
@@ -178,46 +170,10 @@ export default function StudentDashboard() {
           return;
         }
 
-        // Real-time listener for personalized learning path
-        unsubLearningPath = subscribePersonalizedLearningPath(user.uid, (path) => {
-          if (isCancelled) return;
-          if (!path && profile?.grade) {
-            initializeStudentLearningPath(user.uid, profile.grade, isVi).then(newPath => {
-              if (!isCancelled) setLearningPath(newPath);
-            });
-          } else {
-            setLearningPath(path);
-          }
-        });
-
         if (isCancelled || !auth.currentUser) {
           unsubSubmissions();
-          unsubLearningPath();
           return;
         }
-
-        // Query all registered students from users collection to rank every user
-        const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
-        const studentsSnap = await getDocs(studentsQuery);
-        if (isCancelled) return;
-
-        const allStudents = studentsSnap.docs.map(docSnap => {
-          const d = docSnap.data();
-          const realName = d.realName || d.codeName || (isVi ? 'Học sinh' : 'Student');
-          return {
-            id: docSnap.id,
-            realName: realName,
-            codeName: d.codeName,
-            name: realName,
-            score: typeof d.xp === 'number' ? d.xp : 0,
-            isCurrent: docSnap.id === user.uid
-          };
-        }).sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return a.realName.localeCompare(b.realName);
-        });
-
-        setLeaderboard(allStudents);
       } catch (err) {
         console.error("Error setting up real-time student data sync:", err);
         if (!isCancelled) setLoading(false);
@@ -229,7 +185,6 @@ export default function StudentDashboard() {
     return () => {
       isCancelled = true;
       unsubSubmissions();
-      unsubLearningPath();
     };
   }, [user, language, profile?.grade, isVi]);
 
@@ -291,11 +246,11 @@ export default function StudentDashboard() {
             <span>{isVi ? 'Luyện tập ngay' : 'Practice Now'}</span>
           </Link>
           <Link
-            to="/reports"
+            to="/explore"
             className="flex items-center gap-2 bg-teal-700/80 hover:bg-teal-800 text-white px-5 py-3 rounded-2xl font-black shadow-md transition-all hover:scale-105 active:scale-95 text-sm border border-teal-400/40"
           >
-            <FileText className="w-4 h-4" />
-            <span>{isVi ? 'Báo cáo Học tập' : 'Student Reports'}</span>
+            <BookOpen className="w-4 h-4" />
+            <span>{isVi ? 'Vào Học tập' : 'Start Learning'}</span>
           </Link>
         </div>
       </div>
@@ -335,8 +290,8 @@ export default function StudentDashboard() {
 
 
 
-      {/* 4 Core Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 3 Core Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
           <div className="p-3 bg-teal-50 dark:bg-teal-900/40 rounded-xl text-teal-600 shrink-0">
             <Trophy className="w-6 h-6" />
@@ -354,16 +309,6 @@ export default function StudentDashboard() {
           <div className="min-w-0">
             <p className="text-xs font-bold text-gray-400 truncate">{t('student.streak')}</p>
             <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{accurateStreak} {isVi ? 'ngày' : 'days'}</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-xs border border-gray-100 dark:border-gray-700 flex items-center space-x-3.5">
-          <div className="p-3 bg-pink-50 dark:bg-pink-900/40 rounded-xl text-pink-600 shrink-0">
-            <Award className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-gray-400 truncate">{t('student.my_badges')}</p>
-            <p className="text-2xl font-black text-gray-900 dark:text-white truncate">{(profile?.earnedBadges || []).length} / {BADGES.length}</p>
           </div>
         </div>
 
@@ -486,227 +431,9 @@ export default function StudentDashboard() {
         </section>
       )}
 
-      {/* Main Grid: Left side Activity & Study Hub; Right side Classes & Leaderboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Real-time Personalized Learning Path Card */}
-          {learningPath && (
-            <div className="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white p-6 rounded-[2rem] border border-indigo-700/60 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2.5 bg-indigo-700/60 rounded-xl text-amber-300">
-                    <Target className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-indigo-300">
-                      {isVi ? 'Lộ trình học tập cá nhân hóa' : 'Personalized Learning Path'}
-                    </span>
-                    <h3 className="text-lg font-black">{learningPath.targetGoal}</h3>
-                  </div>
-                </div>
-                <Link
-                  to="/explore"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 w-fit border border-white/10 transition-colors"
-                >
-                  <span>{isVi ? 'Xem toàn bộ lộ trình' : 'Full Roadmap'}</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <div className="space-y-2 mb-4 bg-black/20 p-3.5 rounded-2xl border border-white/5">
-                <div className="flex justify-between text-xs font-bold">
-                  <span className="text-indigo-200">{isVi ? 'Tiến độ hoàn thành lộ trình:' : 'Roadmap Progress:'}</span>
-                  <span className="text-amber-300 font-black">{learningPath.overallProgress}%</span>
-                </div>
-                <div className="w-full bg-black/40 rounded-full h-3 overflow-hidden p-0.5">
-                  <div 
-                    className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700"
-                    style={{ width: `${Math.max(5, learningPath.overallProgress)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Next upcoming milestone with quick start button */}
-              {(() => {
-                const nextMs = learningPath.milestones.find(m => !m.completed) || learningPath.milestones[0];
-                if (!nextMs) return null;
-                return (
-                  <div className="p-3.5 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[11px] text-indigo-300 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-300" />
-                        <span>{isVi ? 'Chặng tiếp theo cần vượt qua:' : 'Next Milestone:'}</span>
-                      </div>
-                      <p className="text-sm font-bold text-white truncate">{nextMs.title}</p>
-                    </div>
-                    <Link
-                      to={`/quiz/${nextMs.lessonId}`}
-                      className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-gray-900 font-black text-xs shadow-sm transition-all flex items-center gap-1"
-                    >
-                      <PlayCircle className="w-3.5 h-3.5" />
-                      <span>{isVi ? 'Làm ngay' : 'Start'}</span>
-                    </Link>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* Recent Activity Feed (Chronological list of completed quizzes and achieved goals) */}
-          <RecentActivityFeed submissions={mySubmissions} />
-
-
-        </div>
-
-        {/* Right Column: Leaderboard Podium and Study Goals */}
-        <div className="space-y-6">
-
-          {/* Leaderboard Podium Preview */}
-          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                <Crown className="w-5 h-5 text-yellow-500" />
-                <span>{isVi ? 'Bảng xếp hạng' : 'Leaderboard'}</span>
-              </h2>
-              <Link 
-                to="/achievements" 
-                className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5"
-              >
-                <span>{isVi ? `Tất cả (${leaderboard.length})` : `All (${leaderboard.length})`}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {leaderboard.length > 0 ? (
-              <div className="space-y-2.5">
-                {leaderboard.slice(0, 5).map((student, idx) => {
-                  const isCurrent = student.isCurrent;
-                  return (
-                    <div 
-                      key={idx} 
-                      className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                        isCurrent 
-                          ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-300 dark:border-teal-700' 
-                          : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-700/60'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                          idx === 0 
-                            ? 'bg-yellow-100 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-300' 
-                            : idx === 1 
-                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' 
-                            : idx === 2 
-                            ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300'
-                            : 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                        <span className={`text-xs truncate ${isCurrent ? 'font-black text-teal-900 dark:text-teal-200' : 'font-bold text-gray-900 dark:text-gray-100'}`}>
-                          {student.realName} {isCurrent && `(${isVi ? 'Bạn' : 'You'})`}
-                        </span>
-                      </div>
-                      <span className="text-xs font-black text-teal-600 dark:text-teal-400 shrink-0">
-                        {student.score} pts
-                      </span>
-                    </div>
-                  );
-                })}
-
-                {/* If user is ranked outside top 5, display their current rank */}
-                {(() => {
-                  const myRankIndex = leaderboard.findIndex(s => s.isCurrent);
-                  if (myRankIndex >= 5) {
-                    const myRank = myRankIndex + 1;
-                    return (
-                      <div className="pt-2 border-t border-gray-100 dark:border-gray-700/60">
-                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
-                          <div className="flex items-center space-x-2.5 min-w-0">
-                            <span className="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs font-black shrink-0">
-                              #{myRank}
-                            </span>
-                            <span className="text-xs font-black text-teal-900 dark:text-teal-200 truncate">
-                              {profile?.realName || profile?.codeName} ({isVi ? 'Bạn' : 'You'})
-                            </span>
-                          </div>
-                          <span className="text-xs font-black text-teal-600 dark:text-teal-400 shrink-0">
-                            {profile?.xp || 0} pts
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 text-center py-2 font-medium">
-                {t('student.no_scores')}
-              </p>
-            )}
-          </section>
-
-          {/* Achievements & Badges Showcase */}
-          <section className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-xs space-y-3.5">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                <Award className="w-5 h-5 text-pink-500" />
-                <span>{isVi ? 'Huy hiệu Đã Đạt' : 'Earned Badges'}</span>
-              </h2>
-              <Link 
-                to="/achievements" 
-                className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5"
-              >
-                <span>{(profile?.earnedBadges || []).length}/{BADGES.length}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {BADGES.slice(0, 4).map((badge) => {
-                const isEarned = (profile?.earnedBadges || []).includes(badge.id);
-                return (
-                  <div
-                    key={badge.id}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
-                      isEarned
-                        ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/60 shadow-xs'
-                        : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800 opacity-40 grayscale'
-                    }`}
-                    title={isVi ? badge.descriptionVi : badge.description}
-                  >
-                    <span className="text-2xl mb-1">{badge.icon}</span>
-                    <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate w-full">
-                      {isVi ? badge.nameVi : badge.name}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Academic Report Card */}
-          <div className="bg-gradient-to-br from-teal-900 to-emerald-950 text-white p-5 rounded-[2rem] shadow-xs space-y-3 border border-teal-800/60">
-            <div className="flex items-center gap-2 text-teal-300">
-              <FileText className="w-5 h-5" />
-              <h3 className="text-sm font-black uppercase tracking-wider">
-                {isVi ? 'Báo cáo Học tập' : 'Student Progress Reports'}
-              </h3>
-            </div>
-            <p className="text-xs text-teal-100 leading-relaxed">
-              {isVi 
-                ? 'Xem nhận xét định tính chi tiết từ giáo viên, tiêu chuẩn học tập và xuất báo cáo kết quả PDF chính thức.'
-                : 'Access teacher evaluations, curriculum standards, and official student PDF progress reports.'}
-            </p>
-            <Link
-              to="/reports"
-              className="inline-flex items-center justify-between w-full px-3.5 py-2 bg-white text-teal-950 font-black rounded-xl text-xs hover:bg-teal-50 transition-colors shadow-xs"
-            >
-              <span>{isVi ? 'Mở Báo cáo Học tập' : 'View Reports'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
+      {/* Activity & Study Updates */}
+      <div className="space-y-6">
+        <RecentActivityFeed submissions={mySubmissions} />
       </div>
     </div>
   );

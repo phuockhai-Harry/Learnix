@@ -17,6 +17,8 @@
           if (
             str.indexOf('WebSocket closed without opened') !== -1 ||
             (str.indexOf('[vite]') !== -1 && str.indexOf('WebSocket') !== -1) ||
+            str.indexOf('Live voice initialization error') !== -1 ||
+            str.indexOf('Permission denied') !== -1 ||
             str.indexOf('auth/popup-closed-by-user') !== -1 ||
             str.indexOf('auth/cancelled-popup-request') !== -1
           ) {

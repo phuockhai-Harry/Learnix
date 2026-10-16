@@ -1,4 +1,5 @@
 import { CURRICULUM_QUIZZES } from './curriculumData';
+import { GRADE_6_HISTORY_QUIZZES } from './historyGrade6Quizzes';
 
 export const getLessons = (lang: string, quizId?: string) => {
   const isVi = lang === 'vi';
@@ -50,6 +51,71 @@ export const getLessons = (lang: string, quizId?: string) => {
         hint: q.hint,
         explanation: q.explanation
       }))
+    };
+  }
+
+  // Populate Grade 6 History examination suite into baseLessons
+  for (const hQuiz of GRADE_6_HISTORY_QUIZZES) {
+    baseLessons[hQuiz.id] = {
+      id: hQuiz.id,
+      title: isVi ? hQuiz.title : hQuiz.titleEn,
+      subject: isVi ? hQuiz.subjectVi : hQuiz.subject,
+      grade: hQuiz.grade,
+      semester: hQuiz.semester,
+      durationMinutes: hQuiz.durationMinutes,
+      questions: hQuiz.questions.map(q => {
+        if (q.type === 'true_false') {
+          return {
+            question: q.question,
+            options: isVi ? ['Đúng (True)', 'Sai (False)'] : ['True', 'False'],
+            answerIndex: q.isTrue ? 0 : 1,
+            hint: q.hint,
+            explanation: q.explanation,
+            type: 'true_false'
+          };
+        } else if (q.type === 'drag_drop') {
+          const pairSummary = q.dragPairs ? q.dragPairs.map(p => `• ${p.item} ➔ ${p.correctSlot}`).join('\n') : '';
+          return {
+            question: `${q.question}\n(${isVi ? 'Tự luận kéo thả ghép nối kiến thức' : 'Interactive drag-and-drop matching'}):`,
+            options: [
+              q.dragPairs?.map(p => `${p.item} ➔ ${p.correctSlot}`).join(' | ') || (isVi ? 'Ghép nối chuẩn xác' : 'Accurate matching'),
+              q.dragPairs ? [...q.dragPairs].reverse().map(p => `${p.item} ➔ ${p.correctSlot}`).join(' | ') : 'Ghép nối phương án B',
+              isVi ? 'Ghép nối sai lệch vị trí 1' : 'Incorrect slot assignment 1',
+              isVi ? 'Ghép nối sai lệch vị trí 2' : 'Incorrect slot assignment 2'
+            ],
+            answerIndex: 0,
+            hint: q.hint,
+            explanation: q.explanation || pairSummary,
+            type: 'drag_drop',
+            slots: q.slots,
+            dragPairs: q.dragPairs
+          };
+        }
+        return {
+          question: q.question,
+          options: q.options || [],
+          answerIndex: typeof q.answerIndex === 'number' ? q.answerIndex : 0,
+          hint: q.hint,
+          explanation: q.explanation,
+          type: 'mcq'
+        };
+      })
+    };
+  }
+
+  // Aliases for Geography test links in Grade 6
+  if (baseLessons['quiz-g6-s1-history-geo']) {
+    baseLessons['quiz-g6-s1-geo-midterm'] = {
+      ...baseLessons['quiz-g6-s1-history-geo'],
+      id: 'quiz-g6-s1-geo-midterm',
+      title: isVi ? 'Địa lí 6 - Đề Kiểm Tra Giữa Học Kỳ 1: Bản đồ học & Trái Đất' : 'Geography 6 - Midterm Semester 1: Cartography & Earth'
+    };
+  }
+  if (baseLessons['quiz-g6-s2-history-geo']) {
+    baseLessons['quiz-g6-s2-geo-final'] = {
+      ...baseLessons['quiz-g6-s2-history-geo'],
+      id: 'quiz-g6-s2-geo-final',
+      title: isVi ? 'Địa lí 6 - Đề Kiểm Tra Cuối Học Kỳ 2: Khí quyển, Thủy quyển & Trái Đất' : 'Geography 6 - Final Semester 2: Atmosphere & Hydrosphere'
     };
   }
 
