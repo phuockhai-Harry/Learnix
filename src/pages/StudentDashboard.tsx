@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, updateDoc, arrayUnion, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { useAuth } from '../auth';
 import { useLanguage } from '../i18n';
 import { Link } from 'react-router-dom';
@@ -91,28 +91,34 @@ export default function StudentDashboard() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !auth.currentUser) return;
 
+    let isCancelled = false;
     let unsubSubmissions: () => void = () => {};
     let unsubLearningPath: () => void = () => {};
 
     const setupRealtimeSync = async () => {
       try {
         let currentClasses: any[] = [];
-        if (profile?.email) {
+        if (profile?.email && auth.currentUser) {
           const classesQ = query(collection(db, 'classes'), where('studentEmails', 'array-contains', profile.email));
           const classesSnap = await getDocs(classesQ);
+          if (isCancelled) return;
           currentClasses = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
           setJoinedClasses(currentClasses);
         }
 
+        if (isCancelled || !auth.currentUser) return;
+
         const quizzesQuery = query(collection(db, 'quizzes'), where('creatorId', '==', user.uid));
         const quizSnap = await getDocs(quizzesQuery);
+        if (isCancelled || !auth.currentUser) return;
         const quizzesData = quizSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
 
         // Real-time synchronization for submissions across all devices
         const submissionsQuery = query(collection(db, 'submissions'), where('studentId', '==', user.uid));
         unsubSubmissions = onSnapshot(submissionsQuery, (subSnap) => {
+          if (isCancelled) return;
           const subData = subSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
           
           let allHws: any[] = [];
@@ -167,20 +173,34 @@ export default function StudentDashboard() {
           setLoading(false);
         });
 
+        if (isCancelled || !auth.currentUser) {
+          unsubSubmissions();
+          return;
+        }
+
         // Real-time listener for personalized learning path
         unsubLearningPath = subscribePersonalizedLearningPath(user.uid, (path) => {
+          if (isCancelled) return;
           if (!path && profile?.grade) {
             initializeStudentLearningPath(user.uid, profile.grade, isVi).then(newPath => {
-              setLearningPath(newPath);
+              if (!isCancelled) setLearningPath(newPath);
             });
           } else {
             setLearningPath(path);
           }
         });
 
+        if (isCancelled || !auth.currentUser) {
+          unsubSubmissions();
+          unsubLearningPath();
+          return;
+        }
+
         // Query all registered students from users collection to rank every user
         const studentsQuery = query(collection(db, 'users'), where('role', '==', 'student'));
         const studentsSnap = await getDocs(studentsQuery);
+        if (isCancelled) return;
+
         const allStudents = studentsSnap.docs.map(docSnap => {
           const d = docSnap.data();
           const realName = d.realName || d.codeName || (isVi ? 'Học sinh' : 'Student');
@@ -200,13 +220,14 @@ export default function StudentDashboard() {
         setLeaderboard(allStudents);
       } catch (err) {
         console.error("Error setting up real-time student data sync:", err);
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
     setupRealtimeSync();
 
     return () => {
+      isCancelled = true;
       unsubSubmissions();
       unsubLearningPath();
     };

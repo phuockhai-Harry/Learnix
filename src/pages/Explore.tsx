@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '../i18n';
 import { useAuth } from '../auth';
+import { auth } from '../firebase';
 import { 
   Compass, 
   Target, 
@@ -35,6 +36,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QuizDownloadButton } from '../components/QuizDownloadButton';
+import { QuizA4PdfButton } from '../components/QuizA4PdfButton';
 import { 
   subscribeStudentProgress, 
   subscribePersonalizedLearningPath, 
@@ -93,8 +95,8 @@ export default function Explore() {
   const initialSubject = searchParams.get('subject') || 'all';
   const [selectedSubject, setSelectedSubject] = useState<string>(initialSubject);
 
-  // Secondary sub-tab inside a subject: 'all' | 'midterm' | 'regular' | 'pdfs'
-  const [testSubTab, setTestSubTab] = useState<'all' | 'midterm' | 'regular' | 'pdfs'>('all');
+  // Secondary sub-tab inside a subject: 'all' | 'regular' | 'midterm' | 'final' | 'pdfs'
+  const [testSubTab, setTestSubTab] = useState<'all' | 'regular' | 'midterm' | 'final' | 'pdfs'>('all');
   const [showGradeInfo, setShowGradeInfo] = useState<boolean>(false);
 
   // Synchronize URL search params when subject or semester changes
@@ -138,16 +140,18 @@ export default function Explore() {
 
   // Subscribe to real-time Cloud Storage for student progress
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.uid || !auth.currentUser) return;
+    let isCancelled = false;
 
     const unsubProgress = subscribeStudentProgress(user.uid, (list) => {
-      setProgressList(list);
+      if (!isCancelled) setProgressList(list);
     });
 
     const unsubPath = subscribePersonalizedLearningPath(user.uid, (path) => {
+      if (isCancelled) return;
       if (!path) {
         initializeStudentLearningPath(user.uid, selectedGrade, isVi).then(newPath => {
-          setLearningPath(newPath);
+          if (!isCancelled) setLearningPath(newPath);
         });
       } else {
         setLearningPath(path);
@@ -155,6 +159,7 @@ export default function Explore() {
     });
 
     return () => {
+      isCancelled = true;
       unsubProgress();
       unsubPath();
     };
@@ -483,8 +488,8 @@ export default function Explore() {
                 </div>
               </div>
 
-              {/* Sub-tab view buttons: All | Midterm | Regular | PDFs */}
-              <div className="flex items-center gap-1.5 p-1 bg-white/60 dark:bg-gray-800/80 rounded-2xl border border-gray-200 dark:border-gray-700 shrink-0 self-start sm:self-center">
+              {/* Sub-tab view buttons: All | Regular | Midterm | Final | PDFs */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white/60 dark:bg-gray-800/80 rounded-2xl border border-gray-200 dark:border-gray-700 shrink-0 self-start sm:self-center">
                 <button
                   onClick={() => setTestSubTab('all')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -496,16 +501,6 @@ export default function Explore() {
                   {isVi ? 'Tất cả' : 'All'}
                 </button>
                 <button
-                  onClick={() => setTestSubTab('midterm')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    testSubTab === 'midterm'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  🎯 {isVi ? 'Giữa kỳ' : 'Midterm'}
-                </button>
-                <button
                   onClick={() => setTestSubTab('regular')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     testSubTab === 'regular'
@@ -514,6 +509,26 @@ export default function Explore() {
                   }`}
                 >
                   📝 {isVi ? 'Thường xuyên (15p)' : '15-min'}
+                </button>
+                <button
+                  onClick={() => setTestSubTab('midterm')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    testSubTab === 'midterm'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  🎯 {isVi ? 'Giữa kỳ (45p)' : 'Midterm'}
+                </button>
+                <button
+                  onClick={() => setTestSubTab('final')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    testSubTab === 'final'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  🏆 {isVi ? 'Cuối kỳ (60p)' : 'Final'}
                 </button>
                 <button
                   onClick={() => setTestSubTab('pdfs')}
@@ -565,7 +580,7 @@ export default function Explore() {
                   {midtermQuizzes.map((quiz) => (
                     <div 
                       key={quiz.id}
-                      className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-3xl border-2 border-indigo-100 dark:border-indigo-950/60 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4 overflow-hidden"
+                      className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-3xl border-2 border-indigo-100 dark:border-indigo-950/60 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4 relative"
                     >
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -573,7 +588,8 @@ export default function Explore() {
                             🎯 {isVi ? `Kiểm tra Giữa kỳ ${quiz.semester}` : `Midterm Sem ${quiz.semester}`}
                           </span>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <QuizA4PdfButton quiz={quiz} compact />
                             <QuizDownloadButton
                               quizId={quiz.id}
                               quizTitle={isVi ? quiz.title : quiz.titleEn}
@@ -604,11 +620,11 @@ export default function Explore() {
                         </div>
                       </div>
 
-                      {/* Action buttons: Review Mode & Test Mode */}
-                      <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                      {/* Action buttons: Review Mode, Test Mode & A4 PDF with balanced 3-col grid */}
+                      <div className="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button
                           onClick={() => navigate(`/quiz/${quiz.id}?mode=review`)}
-                          className="flex-1 min-w-[110px] py-2.5 px-3 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2.5 px-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           title={isVi ? 'Ôn tập kèm giải thích chi tiết tức thì' : 'Review with instant feedback'}
                         >
                           <RotateCcw className="w-3.5 h-3.5 shrink-0" />
@@ -617,12 +633,14 @@ export default function Explore() {
 
                         <button
                           onClick={() => navigate(`/quiz/${quiz.id}?mode=test`)}
-                          className="flex-1 min-w-[110px] py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                          className="w-full py-2.5 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                           title={isVi ? 'Thi thử bấm giờ nghiêm túc 45 phút' : 'Timed exam simulation'}
                         >
                           <Clock className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">{isVi ? 'Thi thử (45p)' : 'Timed Test'}</span>
                         </button>
+
+                        <QuizA4PdfButton quiz={quiz} className="w-full" />
                       </div>
                     </div>
                   ))}
@@ -667,7 +685,7 @@ export default function Explore() {
                   {regularQuizzes.map((quiz) => (
                     <div 
                       key={quiz.id}
-                      className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-3xl border-2 border-teal-100 dark:border-teal-950/60 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4 overflow-hidden"
+                      className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-3xl border-2 border-teal-100 dark:border-teal-950/60 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4 relative"
                     >
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -675,7 +693,8 @@ export default function Explore() {
                             📝 {isVi ? 'Kiểm tra 15 phút' : '15-min Test'}
                           </span>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <QuizA4PdfButton quiz={quiz} compact />
                             <QuizDownloadButton
                               quizId={quiz.id}
                               quizTitle={isVi ? quiz.title : quiz.titleEn}
@@ -706,11 +725,11 @@ export default function Explore() {
                         </div>
                       </div>
 
-                      {/* Action buttons: Review Mode & Test Mode */}
-                      <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                      {/* Action buttons: Review Mode, Test Mode & A4 PDF with balanced 3-col grid */}
+                      <div className="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button
                           onClick={() => navigate(`/quiz/${quiz.id}?mode=review`)}
-                          className="flex-1 min-w-[110px] py-2.5 px-3 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/40 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2.5 px-2 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/40 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           title={isVi ? 'Luyện tập xem lời giải ngay' : 'Review with instant feedback'}
                         >
                           <RotateCcw className="w-3.5 h-3.5 shrink-0" />
@@ -719,12 +738,119 @@ export default function Explore() {
 
                         <button
                           onClick={() => navigate(`/quiz/${quiz.id}?mode=test`)}
-                          className="flex-1 min-w-[110px] py-2.5 px-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                          className="w-full py-2.5 px-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                           title={isVi ? 'Làm bài kiểm tra 15 phút tính điểm' : 'Start 15-minute test'}
                         >
                           <Clock className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">{isVi ? 'Làm bài (15p)' : 'Start Test'}</span>
                         </button>
+
+                        <QuizA4PdfButton quiz={quiz} className="w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* SECTION 3: KIỂM TRA CUỐI KỲ (ĐỀ THI CUỐI HỌC KỲ - 60 PHÚT)     */}
+          {/* ============================================================== */}
+          {(testSubTab === 'all' || testSubTab === 'final') && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black shrink-0">
+                    🏆
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                      <span>{isVi ? `Đề thi Kiểm tra Cuối học kỳ ${selectedSemester}` : `Semester ${selectedSemester} Final Examinations`}</span>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-bold shrink-0">
+                        60 {isVi ? 'phút' : 'mins'} • {isVi ? 'Tổng kết' : 'Final Exam'}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {isVi ? 'Đề thi cuối kỳ toàn diện đánh giá chuẩn kiến thức và kỹ năng trọn vẹn cả học kỳ.' : 'Official comprehensive final evaluation for the semester.'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-gray-400 hidden sm:inline shrink-0">
+                  {finalQuizzes.length} {isVi ? 'đề thi' : 'quizzes'}
+                </span>
+              </div>
+
+              {finalQuizzes.length === 0 ? (
+                <div className="p-8 text-center bg-white dark:bg-gray-800 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-xs text-gray-500 font-medium">
+                  {isVi ? 'Chưa có đề thi cuối kỳ cho môn này trong học kỳ được chọn.' : 'No final exams for this subject in the selected semester.'}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {finalQuizzes.map((quiz) => (
+                    <div 
+                      key={quiz.id}
+                      className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-3xl border-2 border-amber-200 dark:border-amber-950/60 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between space-y-4 relative"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                            🏆 {isVi ? `Kiểm tra Cuối kỳ ${quiz.semester}` : `Final Exam Sem ${quiz.semester}`}
+                          </span>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <QuizA4PdfButton quiz={quiz} compact />
+                            <QuizDownloadButton
+                              quizId={quiz.id}
+                              quizTitle={isVi ? quiz.title : quiz.titleEn}
+                              subject={quiz.subject}
+                              compact
+                            />
+                            <span className="text-[11px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-lg shrink-0">
+                              +{quiz.xpReward} XP
+                            </span>
+                          </div>
+                        </div>
+
+                        <h4 className="text-base sm:text-lg font-black text-gray-900 dark:text-white leading-snug line-clamp-2 break-words">
+                          {isVi ? quiz.title : quiz.titleEn}
+                        </h4>
+
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2 break-words">
+                          {isVi ? quiz.description : quiz.descriptionEn}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500 font-semibold pt-1">
+                          <span className="flex items-center gap-1 shrink-0">
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            {quiz.durationMinutes} {isVi ? 'phút' : 'mins'}
+                          </span>
+                          <span>•</span>
+                          <span className="shrink-0">{quiz.questions.length} {isVi ? 'câu hỏi' : 'questions'}</span>
+                        </div>
+                      </div>
+
+                      {/* Action buttons: Review Mode, Test Mode & A4 PDF with balanced 3-col grid */}
+                      <div className="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button
+                          onClick={() => navigate(`/quiz/${quiz.id}?mode=review`)}
+                          className="w-full py-2.5 px-2 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          title={isVi ? 'Ôn tập kèm giải thích chi tiết tức thì' : 'Review with instant feedback'}
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{isVi ? 'Ôn tập' : 'Review'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => navigate(`/quiz/${quiz.id}?mode=test`)}
+                          className="w-full py-2.5 px-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                          title={isVi ? 'Thi thử cuối kỳ 60 phút' : 'Timed final exam'}
+                        >
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{isVi ? 'Thi Cuối kỳ' : 'Final Test'}</span>
+                        </button>
+
+                        <QuizA4PdfButton quiz={quiz} className="w-full" />
                       </div>
                     </div>
                   ))}

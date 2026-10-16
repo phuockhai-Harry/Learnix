@@ -10,7 +10,7 @@ import {
   serverTimestamp, 
   Unsubscribe 
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 
 export interface LessonProgress {
   id: string;
@@ -67,7 +67,7 @@ export function subscribeStudentProgress(
   onUpdate: (progressList: LessonProgress[]) => void,
   onError?: (err: any) => void
 ): Unsubscribe {
-  if (!studentId) {
+  if (!studentId || !auth.currentUser) {
     onUpdate([]);
     return () => {};
   }
@@ -104,6 +104,11 @@ export function subscribeStudentProgress(
         }
       } catch (e) {}
 
+      // If user signed out, listener disconnects expectedly
+      if (!auth.currentUser) {
+        return;
+      }
+
       if (onError) {
         onError(error);
       } else {
@@ -124,7 +129,7 @@ export function subscribePersonalizedLearningPath(
   onUpdate: (path: PersonalizedLearningPath | null) => void,
   onError?: (err: any) => void
 ): Unsubscribe {
-  if (!studentId) {
+  if (!studentId || !auth.currentUser) {
     onUpdate(null);
     return () => {};
   }
@@ -158,6 +163,11 @@ export function subscribePersonalizedLearningPath(
         }
       } catch (e) {}
 
+      // If user signed out, listener disconnects expectedly
+      if (!auth.currentUser) {
+        return;
+      }
+
       if (onError) {
         onError(error);
       } else {
@@ -177,7 +187,7 @@ export function subscribeStudentSubmissions(
   onUpdate: (subs: any[]) => void,
   onError?: (err: any) => void
 ): Unsubscribe {
-  if (!studentId) {
+  if (!studentId || !auth.currentUser) {
     onUpdate([]);
     return () => {};
   }
@@ -200,6 +210,7 @@ export function subscribeStudentSubmissions(
     },
     (error) => {
       console.warn('Real-time submissions sync notice:', error);
+      if (!auth.currentUser) return;
       if (onError) onError(error);
     }
   );

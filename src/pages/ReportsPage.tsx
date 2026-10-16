@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { useAuth } from '../auth';
 import { useLanguage } from '../i18n';
 import { Link } from 'react-router-dom';
@@ -38,16 +38,17 @@ export default function ReportsPage() {
   const accurateStreak = streakInfo.streak;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !auth.currentUser) return;
+    let isCancelled = false;
 
     // Real-time progress subscription
     const unsubProgress = subscribeStudentProgress(user.uid, (list) => {
-      setProgressList(list);
+      if (!isCancelled) setProgressList(list);
     });
 
     // Real-time learning path subscription
     const unsubPath = subscribePersonalizedLearningPath(user.uid, (path) => {
-      setLearningPath(path);
+      if (!isCancelled) setLearningPath(path);
     });
 
     // Real-time submissions query
@@ -95,14 +96,17 @@ export default function ReportsPage() {
         return tB - tA;
       });
 
-      setSubmissions(mapped);
-      setLoading(false);
+      if (!isCancelled) {
+        setSubmissions(mapped);
+        setLoading(false);
+      }
     }, (err: any) => {
       console.error('Error fetching submissions for report:', err);
-      setLoading(false);
+      if (!isCancelled) setLoading(false);
     });
 
     return () => {
+      isCancelled = true;
       unsubProgress();
       unsubPath();
       unsubSubs();

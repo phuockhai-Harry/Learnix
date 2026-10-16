@@ -186,7 +186,7 @@ service cloud.firestore {
     }
 
     match /progress/{progressId} {
-      allow get: if isSignedIn() && (resource.data.studentId == request.auth.uid || isTeacher() || isAdmin());
+      allow get: if isSignedIn() && ((resource != null && resource.data.studentId == request.auth.uid) || isTeacher() || isAdmin());
       allow list: if isSignedIn();
       
       allow create: if isSignedIn()
@@ -195,12 +195,12 @@ service cloud.firestore {
         && incoming().studentId == request.auth.uid;
         
       allow update: if isSignedIn() 
-        && (existing().studentId == request.auth.uid || isAdmin())
+        && ((resource != null && existing().studentId == request.auth.uid) || isAdmin())
         && isValidProgressUpdate(incoming())
         && incoming().studentId == existing().studentId
         && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'completed', 'score', 'mastery', 'lastAccessedAt', 'completedAt', 'updatedAt', 'title', 'subject', 'grade']);
         
-      allow delete: if isSignedIn() && (existing().studentId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && ((resource != null && existing().studentId == request.auth.uid) || isAdmin());
     }
 
     // --- Personalized Learning Paths ---
@@ -232,7 +232,7 @@ service cloud.firestore {
     }
 
     match /learningPaths/{pathId} {
-      allow get: if isSignedIn() && (request.auth.uid == pathId || resource.data.studentId == request.auth.uid || isTeacher() || isAdmin());
+      allow get: if isSignedIn() && (request.auth.uid == pathId || (resource != null && resource.data.studentId == request.auth.uid) || isTeacher() || isAdmin());
       allow list: if isSignedIn();
       
       allow create: if isSignedIn()
@@ -241,12 +241,12 @@ service cloud.firestore {
         && isValidLearningPath(incoming());
         
       allow update: if isSignedIn() 
-        && (request.auth.uid == pathId || existing().studentId == request.auth.uid || isAdmin())
+        && (request.auth.uid == pathId || (resource != null && existing().studentId == request.auth.uid) || isAdmin())
         && isValidLearningPathUpdate(incoming())
         && incoming().studentId == existing().studentId
         && incoming().diff(existing()).affectedKeys().hasOnly(['grade', 'targetGoal', 'overallProgress', 'dailyPaceMinutes', 'strengths', 'focusAreas', 'milestones', 'recommendedModules', 'updatedAt']);
         
-      allow delete: if isSignedIn() && (request.auth.uid == pathId || existing().studentId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (request.auth.uid == pathId || (resource != null && existing().studentId == request.auth.uid) || isAdmin());
     }
 
     // --- Study Plans ---

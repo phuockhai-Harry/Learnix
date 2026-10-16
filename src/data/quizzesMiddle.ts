@@ -2,6 +2,16 @@ import { CurriculumQuiz } from './curriculumData';
 import { GRADE_6_QUIZZES } from './quizzesGrade6';
 import { GRADE_6_REGULAR_QUIZZES } from './quizzesRegularGrade6';
 import { ADDITIONAL_GRADE_6_REGULAR_QUIZZES } from './quizzesRegularGrade6Part2';
+import { ADDITIONAL_GRADE_6_REGULAR_QUIZZES_PART3 } from './quizzesRegularGrade6Part3';
+import { GRADE_6_FINAL_QUIZZES } from './quizzesFinalGrade6';
+import { GRADE_7_FULL_QUIZZES } from './quizzesGrade7';
+import { GRADE_8_FULL_QUIZZES } from './quizzesGrade8';
+import { GRADE_8_PART2_QUIZZES } from './quizzesGrade8Part2';
+import { GRADE_8_PART3_QUIZZES } from './quizzesGrade8Part3';
+import { GRADE_9_PART1_QUIZZES } from './quizzesGrade9';
+import { GRADE_9_LIT_SCI_QUIZZES } from './quizzesGrade9LitSci';
+import { GRADE_9_LIT_SCI_PART2_QUIZZES } from './quizzesGrade9LitSciPart2';
+import { GRADE_9_ENG_HIS_INFO_QUIZZES } from './quizzesGrade9EngHisInfo';
 
 /**
  * Authentic Quizzes for Middle School (THCS: Lớp 6 - 9)
@@ -9,15 +19,33 @@ import { ADDITIONAL_GRADE_6_REGULAR_QUIZZES } from './quizzesRegularGrade6Part2'
  */
 export const MIDDLE_QUIZZES: CurriculumQuiz[] = [
   // ==========================================
-  // GRADE 6 - LỚP 6 (MIDTERM & REGULAR TESTS, MIN 18 QUESTIONS EACH FOR MIDTERMS)
+  // GRADE 6 - LỚP 6 (FINAL, MIDTERM & REGULAR ASSESSMENTS)
   // ==========================================
   ...GRADE_6_QUIZZES,
   ...GRADE_6_REGULAR_QUIZZES,
   ...ADDITIONAL_GRADE_6_REGULAR_QUIZZES,
+  ...ADDITIONAL_GRADE_6_REGULAR_QUIZZES_PART3,
+  ...GRADE_6_FINAL_QUIZZES,
 
   // ==========================================
-  // GRADE 7 - LỚP 7
+  // GRADE 7 - LỚP 7 (FULL REGULAR, MIDTERM & FINAL EXAMS)
   // ==========================================
+  ...GRADE_7_FULL_QUIZZES,
+
+  // ==========================================
+  // GRADE 8 - LỚP 8 (FULL REGULAR & FINAL EXAMS)
+  // ==========================================
+  ...GRADE_8_FULL_QUIZZES,
+  ...GRADE_8_PART2_QUIZZES,
+  ...GRADE_8_PART3_QUIZZES,
+
+  // ==========================================
+  // GRADE 9 - LỚP 9 (FULL REGULAR & FINAL EXAMS - GRADE 10 PREP)
+  // ==========================================
+  ...GRADE_9_PART1_QUIZZES,
+  ...GRADE_9_LIT_SCI_QUIZZES,
+  ...GRADE_9_LIT_SCI_PART2_QUIZZES,
+  ...GRADE_9_ENG_HIS_INFO_QUIZZES,
   {
     id: 'quiz-g7-s1-math-rationals-reals',
     title: 'Toán 7 - HK1: Số Hữu tỉ, Số Thực & Góc ở Vị trí Đặc biệt',

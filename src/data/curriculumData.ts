@@ -32,7 +32,7 @@ export interface CurriculumQuiz {
   subject: string;
   subjectVi: string;
   subjectEn: string;
-  category: 'math' | 'science' | 'literature' | 'english' | 'tech' | 'social';
+  category: 'math' | 'science' | 'literature' | 'english' | 'tech' | 'social' | 'technology' | 'civics';
   difficulty: 'easy' | 'medium' | 'hard';
   durationMinutes: number;
   xpReward: number;
