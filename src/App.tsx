@@ -106,7 +106,7 @@ export default function App() {
                   <Route path="/study-rooms" element={<RoleRoute allowedRoles={['student', 'teacher']}><StudyRooms /></RoleRoute>} />
                   <Route path="/flashcards" element={<Navigate to="/explore?subject=g6-history-geo" replace />} />
                   <Route path="/planner" element={<Navigate to="/explore?tab=planner" replace />} />
-                  <Route path="/achievements" element={<RoleRoute allowedRoles={['student']}><Achievements /></RoleRoute>} />
+                  <Route path="/achievements" element={<RoleRoute allowedRoles={['student', 'teacher']}><Achievements /></RoleRoute>} />
                   <Route path="/reports" element={<RoleRoute allowedRoles={['student']}><ReportsPage /></RoleRoute>} />
                   <Route path="/admin" element={<RoleRoute allowedRoles={['admin']}><AdminDashboard /></RoleRoute>} />
                   <Route path="/account" element={<Account />} />

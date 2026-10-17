@@ -26,9 +26,9 @@ export default function JoinClass() {
       return;
     }
 
-    if (profile.role === 'teacher') {
+    if (profile.role === 'teacher' || profile.role === 'admin') {
       setStatus('error');
-      setMessage('Teachers cannot join classes as students.');
+      setMessage('Giáo viên và Quản trị viên không thể tham gia lớp học với vai trò Học sinh.');
       return;
     }
 

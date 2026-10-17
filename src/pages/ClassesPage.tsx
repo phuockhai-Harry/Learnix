@@ -39,7 +39,10 @@ export default function ClassesPage() {
 
   const handleJoinClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile?.email || !joinCodeInput.trim()) return;
+    if (profile?.role === 'teacher' || profile?.role === 'admin') {
+      setJoinError(isVi ? 'Giáo viên và Quản trị viên không thể tham gia lớp học với vai trò Học sinh.' : 'Teachers and admins cannot join classes as students.');
+      return;
+    }
     setJoinError('');
     setJoining(true);
 

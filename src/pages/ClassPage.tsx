@@ -140,6 +140,18 @@ export default function ClassPage() {
 
     setAddingStudent(true);
     try {
+      // Check user role: Do not allow adding teachers or admins into class roster as students
+      const userQ = query(collection(db, 'users'), where('email', '==', inputEmail));
+      const userSnap = await getDocs(userQ);
+      if (!userSnap.empty) {
+        const targetUserData = userSnap.docs[0].data();
+        if (targetUserData.role === 'teacher' || targetUserData.role === 'admin') {
+          setAddStudentError('Không thể thêm Giáo viên hoặc Quản trị viên vào danh sách Học sinh của lớp!');
+          setAddingStudent(false);
+          return;
+        }
+      }
+
       await updateDoc(doc(db, 'classes', classId!), {
         studentEmails: arrayUnion(inputEmail)
       });
@@ -437,7 +449,15 @@ export default function ClassPage() {
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {myStudents.map((s, idx) => {
                 let progressPercent = 0;
-                if (s.registered && s.id && myQuizzes.length > 0) {
+                let completedHwCount = 0;
+                const totalHwCount = classData.homeworks?.length || 0;
+
+                if (s.registered && s.id && totalHwCount > 0) {
+                  completedHwCount = classData.homeworks.filter((hw: any) =>
+                    submissions.some(sub => sub.studentId === s.id && sub.quizId === hw.quizId)
+                  ).length;
+                  progressPercent = Math.round((completedHwCount / totalHwCount) * 100);
+                } else if (s.registered && s.id && myQuizzes.length > 0) {
                   const completedQuizzes = new Set(submissions.filter(sub => sub.studentId === s.id).map(sub => sub.quizId));
                   progressPercent = Math.round((completedQuizzes.size / myQuizzes.length) * 100);
                 }
@@ -448,10 +468,13 @@ export default function ClassPage() {
                       <p className="font-medium text-gray-900 dark:text-white text-lg">{s.realName}</p>
                       {isTeacher && <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{s.email}</p>}
                       
-                      {s.registered && myQuizzes.length > 0 && (
-                        <div className="w-full sm:w-48 mt-1">
+                      {s.registered && (totalHwCount > 0 || myQuizzes.length > 0) && (
+                        <div className="w-full sm:w-56 mt-1">
                           <div className="flex justify-between items-center text-xs mb-1">
-                            <span className="text-gray-500 dark:text-gray-400 font-bold">{progressPercent}% Completed</span>
+                            <span className="text-teal-700 dark:text-teal-300 font-bold">
+                              {progressPercent}% Hoàn thành
+                              {totalHwCount > 0 && ` (${completedHwCount}/${totalHwCount} bài tập)`}
+                            </span>
                           </div>
                           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                             <div className="bg-teal-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
