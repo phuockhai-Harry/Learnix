@@ -523,8 +523,8 @@ export default function Explore() {
       {/* ========================================================================= */}
       {selectedSubject !== 'all' && (
         <div className="space-y-8 animate-fade-in">
-          {/* PHẦN 2: CẤU TRÚC MÔN LỊCH SỬ VÀ ĐỊA LÍ LỚP 6: PHÂN CHIA THÀNH 2 PHÂN HỆ RÕ RÀNG */}
-          {selectedGrade === 6 && (selectedSubject === 'g6-history-geo' || activeSubjectObj?.id === 'g6-history-geo' || (activeSubjectObj?.category === 'social' && !activeSubjectObj?.id.includes('civic'))) ? (
+          {/* PHẦN 2: CẤU TRÚC MÔN LỊCH SỬ VÀ ĐỊA LÍ LỚP 6 (CHỈ HIỂN THỊ KHI CHỌN ĐÚNG MÔN LỊCH SỬ & ĐỊA LÍ 6) */}
+          {selectedGrade === 6 && (selectedSubject === 'g6-history-geo' || activeSubjectObj?.id === 'g6-history-geo') ? (
             <HistoryStudyHub 
               initialSubsystem={historyGeoSubsystem}
               activeSubsystem={historyGeoSubsystem}

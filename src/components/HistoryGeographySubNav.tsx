@@ -31,7 +31,7 @@ export interface HistoryGeographySubNavProps {
     quizzesCount?: number;
     hasMapSkills?: boolean;
   };
-  onQuickJump?: (target: 'pdf' | 'mindmap' | 'flashcards' | 'quizzes' | 'geo-topics') => void;
+  onQuickJump?: (target: 'pdf' | 'mindmap' | 'sketchnote' | 'flashcards' | 'video' | 'quizzes' | 'geo-topics') => void;
   className?: string;
 }
 
@@ -333,13 +333,25 @@ export const HistoryGeographySubNav: React.FC<HistoryGeographySubNavProps> = ({
                     onClick={() => onQuickJump('mindmap')}
                     className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
                   >
-                    🧠 Sơ đồ tư duy
+                    🧠 Mindmap
+                  </button>
+                  <button
+                    onClick={() => onQuickJump('sketchnote')}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
+                  >
+                    🎨 Sketchnote Ôn Tự Luận
                   </button>
                   <button
                     onClick={() => onQuickJump('flashcards')}
                     className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
                   >
                     🎴 Flashcards
+                  </button>
+                  <button
+                    onClick={() => onQuickJump('video')}
+                    className="px-2.5 py-1 rounded-lg bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 font-bold hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
+                  >
+                    📺 Video VietJack
                   </button>
                   <button
                     onClick={() => onQuickJump('quizzes')}

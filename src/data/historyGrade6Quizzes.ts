@@ -990,5 +990,720 @@ export const GRADE_6_HISTORY_QUIZZES: HistoryStandardQuiz[] = [
         explanation: '905 -> Khúc Thừa Dụ; 931 -> Dương Đình Nghệ; 938 -> Ngô Quyền; Sa Nam/Mai Hắc Đế -> Mai Thúc Loan.'
       }
     ]
+  },
+
+  // =========================================================================
+  // 4. ÔN TẬP CHƯƠNG 1: VÌ SAO PHẢI HỌC LỊCH SỬ? (ĐÚNG 15 CÂU TRẮC NGHIỆM MCQ)
+  // =========================================================================
+  {
+    id: 'quiz-h6-ch1-revision',
+    title: 'Lịch sử 6 - Ôn tập Chương 1: Vì sao phải học Lịch sử?',
+    titleEn: 'History 6 - Chapter 1 Revision: Why Study History?',
+    grade: 6,
+    semester: 1,
+    subject: 'Lịch sử và Địa lý',
+    subjectVi: 'Phân môn Lịch sử',
+    category: 'social',
+    testType: 'regular',
+    durationMinutes: 15,
+    xpReward: 100,
+    description: 'Bộ 15 câu hỏi trắc nghiệm chuẩn mực ôn tập toàn bộ kiến thức Chương 1: Khái niệm lịch sử, các nguồn tư liệu và phương pháp tính thời gian.',
+    descriptionEn: 'Chapter 1 Revision Quiz: exactly 15 multiple-choice questions on historiography, sources, and chronology.',
+    questions: [
+      {
+        question: 'Lịch sử là gì?',
+        type: 'mcq',
+        options: [
+          'Những câu chuyện viễn tưởng do con người sáng tác',
+          'Toàn bộ những gì đã diễn ra trong quá khứ của xã hội loài người',
+          'Các quy luật tự nhiên về thời tiết và vũ trụ',
+          'Dự báo những sự kiện sẽ diễn ra trong tương lai'
+        ],
+        answerIndex: 1,
+        hint: 'Lịch sử là sự thật khách quan đã diễn ra.',
+        explanation: 'SGK Lịch sử 6 định nghĩa: Lịch sử là tất cả những gì đã diễn ra trong quá khứ của loài người.'
+      },
+      {
+        question: 'Yếu tố nào dưới đây KHÔNG PHẢI là đối tượng nghiên cứu của Sử học?',
+        type: 'mcq',
+        options: ['Các cuộc kháng chiến giữ nước', 'Sự phát triển công cụ lao động cổ đại', 'Sự quay của Trái Đất quanh Mặt Trời', 'Sự hình thành các quốc gia cổ'],
+        answerIndex: 2,
+        hint: 'Sự quay của Trái Đất thuộc môn Địa lý và Thiên văn.',
+        explanation: 'Sử học tập trung nghiên cứu đời sống và hoạt động con người trong quá khứ.'
+      },
+      {
+        question: 'Tư liệu truyền miệng có ưu điểm nổi bật nào?',
+        type: 'mcq',
+        options: ['Chính xác tuyệt đối 100% không bị dị bản', 'Lưu giữ tâm tư, nguyện vọng và ký ức nhân dân qua nhiều thế hệ', 'Khắc trực tiếp trên đá cổ', 'Ghi chép cụ thể ngày tháng'],
+        answerIndex: 1,
+        hint: 'Gồm thần thoại, truyền thuyết, ca dao.',
+        explanation: 'Tư liệu truyền miệng phản ánh tình cảm, thái độ của nhân dân đối với nhân vật, sự kiện lịch sử.'
+      },
+      {
+        question: 'Trống đồng Đông Sơn thuộc loại nguồn tư liệu lịch sử nào?',
+        type: 'mcq',
+        options: ['Tư liệu chữ viết', 'Tư liệu hiện vật', 'Tư liệu truyền miệng', 'Tư liệu phim ảnh'],
+        answerIndex: 1,
+        hint: 'Là di vật do người xưa chế tác và để lại.',
+        explanation: 'Trống đồng là hiện vật vật chất do cư dân cổ đại chế tác và bảo tồn qua thời gian.'
+      },
+      {
+        question: 'Loại tư liệu nào cung cấp thông tin chữ viết trên bia đá, giáp cốt hoặc sách cổ?',
+        type: 'mcq',
+        options: ['Tư liệu hiện vật', 'Tư liệu truyền miệng', 'Tư liệu chữ viết', 'Tư liệu khảo cổ'],
+        answerIndex: 2,
+        hint: 'Chứa hệ thống ký tự ghi chép.',
+        explanation: 'Văn bia, thư tịch cổ, giáp cốt văn là nguồn tư liệu chữ viết trực tiếp.'
+      },
+      {
+        question: 'Mục đích tối cao của việc học tập môn Lịch sử là gì?',
+        type: 'mcq',
+        options: ['Thuộc lòng các mốc ngày tháng', 'Hiểu cội nguồn, rút ra bài học quá khứ để xây dựng tương lai', 'Để tham gia trò chơi đố vui', 'Để viết tiểu thuyết hư cấu'],
+        answerIndex: 1,
+        hint: 'Dân ta phải biết sử ta - Cho tường gốc tích nước nhà Việt Nam.',
+        explanation: 'Học Lịch sử để biết gốc tích tổ tiên, quê hương và vận dụng kinh nghiệm quá khứ cho hiện tại.'
+      },
+      {
+        question: 'Nhà sử học Herodotus (Hê-rô-đốt) nổi tiếng đến từ quốc gia cổ đại nào?',
+        type: 'mcq',
+        options: ['Ai Cập cổ đại', 'Hy Lạp cổ đại', 'La Mã cổ đại', 'Trung Quốc cổ đại'],
+        answerIndex: 1,
+        hint: 'Quốc gia giáp Địa Trung Hải nổi tiếng với thành bang Aten.',
+        explanation: 'Herodotus là nhà sử học kiệt xuất của Hy Lạp cổ đại sống vào thế kỷ V TCN.'
+      },
+      {
+        question: 'Một thập kỷ trong cách tính thời gian lịch sử bằng bao nhiêu năm?',
+        type: 'mcq',
+        options: ['5 năm', '10 năm', '100 năm', '1000 năm'],
+        answerIndex: 1,
+        hint: '1 thập kỷ = 10 năm.',
+        explanation: 'Thập kỷ là khoảng thời gian 10 năm liên tiếp.'
+      },
+      {
+        question: 'Một thế kỷ trong lịch sử có độ dài là bao nhiêu năm?',
+        type: 'mcq',
+        options: ['10 năm', '50 năm', '100 năm', '1000 năm'],
+        answerIndex: 2,
+        hint: 'Chữ "thế kỷ" tương ứng với 100 năm.',
+        explanation: '1 thế kỷ = 100 năm.'
+      },
+      {
+        question: 'Một thiên niên kỷ tương ứng với bao nhiêu năm?',
+        type: 'mcq',
+        options: ['100 năm', '500 năm', '1000 năm', '10000 năm'],
+        answerIndex: 2,
+        hint: 'Gấp 10 lần thế kỷ.',
+        explanation: '1 thiên niên kỷ = 1000 năm.'
+      },
+      {
+        question: 'Năm 179 TCN thuộc thế kỷ thứ mấy?',
+        type: 'mcq',
+        options: ['Thế kỷ I TCN', 'Thế kỷ II TCN', 'Thế kỷ III TCN', 'Thế kỷ IV TCN'],
+        answerIndex: 1,
+        hint: 'Năm từ 200 TCN đến 101 TCN thuộc thế kỷ II TCN.',
+        explanation: 'Năm 179 TCN thuộc thế kỷ II trước Công nguyên.'
+      },
+      {
+        question: 'Âm lịch là lịch được tính theo chu kỳ chuyển động của:',
+        type: 'mcq',
+        options: ['Trái Đất quay quanh Mặt Trời', 'Mặt Trăng quay quanh Trái Đất', 'Sao Hỏa quay quanh Mặt Trời', 'Trái Đất tự quay quanh trục'],
+        answerIndex: 1,
+        hint: 'Dựa vào hiện tượng trăng tròn trăng khuyết.',
+        explanation: 'Âm lịch dựa trên chu kỳ trăng tròn khuyết (khoảng 29,5 ngày/tháng).'
+      },
+      {
+        question: 'Dương lịch dựa vào chu kỳ chuyển động nào dưới đây?',
+        type: 'mcq',
+        options: ['Mặt Trăng quay quanh Trái Đất', 'Trái Đất quay quanh Mặt Trời', 'Mặt Trời quay quanh Ngân Hà', 'Thủy triều dâng rút'],
+        answerIndex: 1,
+        hint: 'Một chu kỳ mất 365 ngày 6 giờ.',
+        explanation: 'Dương lịch tính theo chu kỳ Trái Đất quay một vòng quanh Mặt Trời.'
+      },
+      {
+        question: 'Bộ quốc sử đầu tiên của Việt Nam do ai biên soạn vào năm 1272?',
+        type: 'mcq',
+        options: ['Ngô Sĩ Liên', 'Lê Văn Hưu', 'Phan Huy Chú', 'Trần Trọng Kim'],
+        answerIndex: 1,
+        hint: 'Tác giả bộ "Đại Việt sử ký" thời vua Trần Thánh Tông.',
+        explanation: 'Lê Văn Hưu biên soạn bộ Đại Việt sử ký năm 1272 dưới thời nhà Trần.'
+      },
+      {
+        question: 'Muốn phục dựng lại bức tranh lịch sử chân thực nhất, các nhà khoa học phải làm gì?',
+        type: 'mcq',
+        options: ['Chỉ tin tưởng vào tư liệu truyền miệng', 'Đối chiếu, kiểm chứng đa dạng nhiều nguồn tư liệu lịch sử', 'Sáng tác thêm tình tiết hư cấu', 'Chỉ dựa vào tưởng tượng'],
+        answerIndex: 1,
+        hint: 'Phải phối hợp hiện vật, chữ viết và truyền miệng.',
+        explanation: 'Sử học cần khai thác, phân tích và so sánh đối chiếu nhiều nguồn tư liệu để đảm bảo tính khách quan khoa học.'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 5. ÔN TẬP CHƯƠNG 2: XÃ HỘI NGUYÊN THỦY (ĐÚNG 15 CÂU TRẮC NGHIỆM MCQ)
+  // =========================================================================
+  {
+    id: 'quiz-h6-ch2-revision',
+    title: 'Lịch sử 6 - Ôn tập Chương 2: Xã hội nguyên thủy',
+    titleEn: 'History 6 - Chapter 2 Revision: Primitive Society',
+    grade: 6,
+    semester: 1,
+    subject: 'Lịch sử và Địa lý',
+    subjectVi: 'Phân môn Lịch sử',
+    category: 'social',
+    testType: 'regular',
+    durationMinutes: 15,
+    xpReward: 100,
+    description: 'Bộ 15 câu hỏi trắc nghiệm ôn tập Chương 2: Quá trình tiến hóa từ Vượn người thành Người tinh khôn và đời sống nguyên thủy ở Việt Nam.',
+    descriptionEn: 'Chapter 2 Revision Quiz: 15 MCQs covering human evolution, fire discovery, primitive society, and archaeology in Vietnam.',
+    questions: [
+      {
+        question: 'Quá trình tiến hóa từ Vượn người thành con người trải qua các chặng nào?',
+        type: 'mcq',
+        options: [
+          'Vượn người ➔ Người tối cổ ➔ Người tinh khôn',
+          'Người tối cổ ➔ Vượn người ➔ Người hiện đại',
+          'Vượn người ➔ Người tinh khôn ➔ Người tối cổ',
+          'Thị tộc ➔ Bộ lạc ➔ Người tối cổ'
+        ],
+        answerIndex: 0,
+        hint: 'Khởi đầu từ vượn cổ cách ngày nay 5 - 6 triệu năm.',
+        explanation: 'Sơ đồ tiến hóa chuẩn: Vượn người -> Người tối cổ (4 triệu năm) -> Người tinh khôn (15 vạn năm).'
+      },
+      {
+        question: 'Thể tích hộp sọ của Người tối cổ đạt khoảng bao nhiêu?',
+        type: 'mcq',
+        options: ['400 - 500 cm³', '850 - 1100 cm³', '1400 cm³', '2000 cm³'],
+        answerIndex: 1,
+        hint: 'Lớn hơn Vượn người (400-500) và nhỏ hơn Người tinh khôn (1400).',
+        explanation: 'Thể tích não Người tối cổ phát triển lên khoảng 850 - 1100 cm³.'
+      },
+      {
+        question: 'Nhân tố quyết định trực tiếp biến Vượn người thành Con người là:',
+        type: 'mcq',
+        options: ['Điều kiện thời tiết mưa nhiều', 'Lao động sản xuất và chế tạo công cụ', 'Ăn hoa quả rừng chín', 'Trốn chạy dã thú'],
+        answerIndex: 1,
+        hint: 'Luận điểm nổi tiếng của triết gia Ăng-ghen.',
+        explanation: 'Lao động chế tác công cụ giúp hoàn thiện bàn tay, dáng đứng thẳng và tư duy bộ não.'
+      },
+      {
+        question: 'Phát minh vĩ đại nhất của Người tối cổ giúp thay đổi hoàn toàn điều kiện sinh tồn là:',
+        type: 'mcq',
+        options: ['Chế tạo gốm sứ', 'Tìm ra lửa và biết giữ lửa', 'Đúc trống đồng', 'Xây nhà tầng'],
+        answerIndex: 1,
+        hint: 'Dùng để nướng chín thức ăn, sưởi ấm và xua đuổi thú dữ.',
+        explanation: 'Lửa giúp con người thoát khỏi ăn sống nuốt tươi, tăng sức đề kháng và bảo vệ bản thân.'
+      },
+      {
+        question: 'Người tinh khôn xuất hiện vào khoảng thời gian nào?',
+        type: 'mcq',
+        options: ['5 - 6 triệu năm trước', '4 triệu năm trước', '15 vạn năm trước', '4000 năm trước'],
+        answerIndex: 2,
+        hint: 'Khoảng 150.000 năm trước.',
+        explanation: 'Người tinh khôn (Homo sapiens) xuất hiện cách đây khoảng 15 vạn năm.'
+      },
+      {
+        question: 'Đặc điểm kỹ thuật chế tác đá nổi bật của Người tinh khôn là:',
+        type: 'mcq',
+        options: ['Chỉ biết ghè đẽo thô sơ', 'Kỹ thuật mài nhẵn lưỡi, đục lỗ tra cán', 'Không dùng đồ đá', 'Chỉ dùng vỏ cây'],
+        answerIndex: 1,
+        hint: 'Tạo ra sản phẩm sắc bén và nhiều hình dáng chuyên dụng.',
+        explanation: 'Kỹ thuật mài đá nhẵn đánh dấu bước tiến lớn của đồ đá mới.'
+      },
+      {
+        question: 'Di chỉ khảo cổ rìu tay đá có niên đại 80 vạn năm trước ở Việt Nam được phát hiện tại:',
+        type: 'mcq',
+        options: ['Núi Đọ (Thanh Hóa)', 'An Khê (Gia Lai)', 'Thẩm Khuyên (Lạng Sơn)', 'Soi Nhụ (Quảng Ninh)'],
+        answerIndex: 1,
+        hint: 'Địa danh thuộc vùng Tây Nguyên trù phú.',
+        explanation: 'Bộ rìu tay đá cuội thô sơ 800.000 năm được phát hiện tại Rộc Tủng, Gò Đá (An Khê, Gia Lai).'
+      },
+      {
+        question: 'Răng hóa thạch của Người tối cổ ở Việt Nam tìm thấy tại hang động nào?',
+        type: 'mcq',
+        options: ['Hang Con Moong (Thanh Hóa)', 'Hang Thẩm Khuyên, Thẩm Hai (Lạng Sơn)', 'Hang Sơn Doòng (Quảng Bình)', 'Động Phong Nha'],
+        answerIndex: 1,
+        hint: 'Thuộc tỉnh miền núi phía Bắc giáp biên giới.',
+        explanation: 'Di tích răng hóa thạch Người tối cổ (40-30 vạn năm) tìm thấy ở Lạng Sơn.'
+      },
+      {
+        question: 'Tổ chức xã hội đầu tiên của Người tinh khôn gồm các gia đình cùng huyết thống gọi là:',
+        type: 'mcq',
+        options: ['Bầy người nguyên thủy', 'Thị tộc', 'Bộ lạc', 'Giai cấp'],
+        answerIndex: 1,
+        hint: 'Nhóm người 20-30 người chung dòng máu.',
+        explanation: 'Thị tộc là nhóm người gồm vài chục gia đình có cùng quan hệ huyết thống, hợp sức lao động.'
+      },
+      {
+        question: 'Nhiều thị tộc sống cạnh nhau trên cùng một địa bàn đất đai hợp thành:',
+        type: 'mcq',
+        options: ['Giai cấp', 'Bộ lạc', 'Nhà nước', 'Thị quốc'],
+        answerIndex: 1,
+        hint: 'Tổ chức liên minh nhiều thị tộc.',
+        explanation: 'Bộ lạc gồm nhiều thị tộc cư trú trên cùng địa bàn, có tên gọi và tập quán chung.'
+      },
+      {
+        question: 'Kim loại đầu tiên con người phát minh ra để chế tạo công cụ thay thế đồ đá là:',
+        type: 'mcq',
+        options: ['Sắt', 'Đồng thau (Đồng đỏ)', 'Vàng', 'Nhôm'],
+        answerIndex: 1,
+        hint: 'Dễ nung chảy ở nhiệt độ thấp hơn sắt.',
+        explanation: 'Khoảng thiên niên kỷ IV TCN, cư dân Tây Á phát minh ra đồng đỏ (đồng thau).'
+      },
+      {
+        question: 'Khi công cụ kim loại ra đời, năng suất lao động tăng vọt dẫn tới hệ quả xã hội nào?',
+        type: 'mcq',
+        options: ['Mọi người bình đẳng như cũ', 'Xuất hiện sản phẩm dư thừa và sự phân hóa giàu nghèo', 'Con người quay lại sống trong hang động', 'Thị tộc tan rã không còn gia đình'],
+        answerIndex: 1,
+        hint: 'Mầm mầm tư hữu xuất hiện.',
+        explanation: 'Sản phẩm dư thừa bị tư hữu hóa, làm xã hội nguyên thủy rạn nứt và giai cấp ra đời.'
+      },
+      {
+        question: 'Sự xuất hiện tư hữu và phân hóa giai cấp đã dẫn đến sự ra đời của hình thái nào?',
+        type: 'mcq',
+        options: ['Công xã nguyên thủy', 'Nhà nước', 'Bầy người nguyên thủy', 'Thị tộc mẫu hệ'],
+        answerIndex: 1,
+        hint: 'Bộ máy quyền lực cai trị xã hội.',
+        explanation: 'Nhà nước ra đời để quản lý xã hội có phân hóa giai cấp.'
+      },
+      {
+        question: 'Cư dân nguyên thủy Việt Nam bắt đầu biết làm đồ gốm từ nền văn hóa nào?',
+        type: 'mcq',
+        options: ['Văn hóa Hòa Bình', 'Văn hóa Bắc Sơn', 'Văn hóa Phùng Nguyên', 'Văn hóa Đông Sơn'],
+        answerIndex: 1,
+        hint: 'Nền văn hóa đá mới miền núi phía Bắc.',
+        explanation: 'Văn hóa Bắc Sơn chứng kiến sự ra đời của kỹ thuật nặn và nung đồ gốm sơ khai.'
+      },
+      {
+        question: 'Nguyên nhân cốt lõi khiến xã hội nguyên thủy trên thế giới tan rã là gì?',
+        type: 'mcq',
+        options: ['Do thiên tai bão lũ kéo dài', 'Do sự phát triển của công cụ kim loại dẫn tới sản phẩm dư thừa', 'Do thú dữ tấn công', 'Do con người ngừng lao động'],
+        answerIndex: 1,
+        hint: 'Công cụ kim khí làm thay đổi quan hệ sản xuất.',
+        explanation: 'Phát minh kim khí làm tăng năng suất, tạo dư thừa, nảy sinh tư hữu và làm xã hội nguyên thủy tan rã.'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 6. ÔN TẬP CHƯƠNG 3: XÃ HỘI CỔ ĐẠI (ĐÚNG 15 CÂU TRẮC NGHIỆM MCQ)
+  // =========================================================================
+  {
+    id: 'quiz-h6-ch3-revision',
+    title: 'Lịch sử 6 - Ôn tập Chương 3: Xã hội Cổ đại & Văn minh Nhân loại',
+    titleEn: 'History 6 - Chapter 3 Revision: Ancient Civilizations',
+    grade: 6,
+    semester: 1,
+    subject: 'Lịch sử và Địa lý',
+    subjectVi: 'Phân môn Lịch sử',
+    category: 'social',
+    testType: 'regular',
+    durationMinutes: 15,
+    xpReward: 100,
+    description: 'Bộ 15 câu hỏi trắc nghiệm ôn tập Chương 3: Văn minh Ai Cập, Lưỡng Hà, Ấn Độ, Trung Quốc, Hy Lạp và La Mã cổ đại.',
+    descriptionEn: 'Chapter 3 Revision Quiz: 15 MCQs on ancient Eastern and Western civilizations, achievements, and legacies.',
+    questions: [
+      {
+        question: 'Các nền văn minh phương Đông cổ đại đều hình thành bên lưu vực:',
+        type: 'mcq',
+        options: ['Các bán đảo ven biển', 'Các con sông lớn trù phú', 'Vùng sa mạc khô hạn', 'Các vùng đồi núi cao'],
+        answerIndex: 1,
+        hint: 'Nơi có phù sa màu mỡ phát triển lúa nước.',
+        explanation: 'Sông Nin, Lưỡng Hà, Sông Hằng, Hoàng Hà nuôi dưỡng văn minh phương Đông.'
+      },
+      {
+        question: 'Chế độ chính trị phổ biến ở các quốc gia cổ đại phương Đông là:',
+        type: 'mcq',
+        options: ['Dân chủ chủ nô', 'Quân chủ chuyên chế cổ đại', 'Cộng hòa nghị viện', 'Thị quốc độc lập'],
+        answerIndex: 1,
+        hint: 'Vua (Pharaon, Thiên tử) nắm toàn bộ quyền lực.',
+        explanation: 'Vua có quyền lực tuyệt đối chỉ đạo thủy lợi và quân đội.'
+      },
+      {
+        question: 'Kim tự tháp Ai Cập cổ đại được xây dựng nhằm mục đích chính gì?',
+        type: 'mcq',
+        options: ['Làm đài quan sát thiên văn', 'Làm lăng mộ cất giữ thi hài Pharaoh', 'Làm kho chứa lương thực', 'Làm đền thờ thần linh'],
+        answerIndex: 1,
+        hint: 'Nơi lưu giữ xác ướp của vua.',
+        explanation: 'Kim tự tháp là công trình lăng mộ vĩ đại bảo vệ thi hài Pharaoh.'
+      },
+      {
+        question: 'Chữ hình nêm (tiết hình) là sản phẩm chữ viết độc đáo của cư dân:',
+        type: 'mcq',
+        options: ['Ai Cập', 'Lưỡng Hà', 'Ấn Độ', 'Trung Quốc'],
+        answerIndex: 1,
+        hint: 'Dùng que nhọn ấn vào phiến đất sét mềm.',
+        explanation: 'Người Lưỡng Hà phát minh chữ hình nêm khắc trên gạch đất sét.'
+      },
+      {
+        question: 'Bộ luật thành văn cổ nhất thế giới còn nguyên vẹn là bộ luật nào?',
+        type: 'mcq',
+        options: ['Luật 12 Bảng', 'Bộ luật Hammurabi', 'Luật Hồng Đức', 'Bộ luật Napoleon'],
+        answerIndex: 1,
+        hint: 'Khắc trên bia đá đen của vua Babylon.',
+        explanation: 'Bộ luật Hammurabi Lưỡng Hà gồm 282 điều khoản.'
+      },
+      {
+        question: 'Chế độ phân chia xã hội theo 4 đẳng cấp Varna là đặc trưng của quốc gia nào?',
+        type: 'mcq',
+        options: ['Ai Cập cổ đại', 'Ấn Độ cổ đại', 'La Mã cổ đại', 'Trung Quốc cổ đại'],
+        answerIndex: 1,
+        hint: 'Phân biệt Braman, Kshatriya, Vaisya, Sudra.',
+        explanation: 'Chế độ Varna phân hóa khắt khe xã hội Ấn Độ cổ đại.'
+      },
+      {
+        question: 'Hệ thống chữ số từ 0 đến 9 đang được toàn thế giới sử dụng do ai sáng tạo?',
+        type: 'mcq',
+        options: ['Người Hy Lạp', 'Người Ấn Độ cổ đại', 'Người Ả Rập', 'Người La Mã'],
+        answerIndex: 1,
+        hint: 'Sau đó người Ả Rập truyền sang phương Tây.',
+        explanation: 'Cư dân Ấn Độ cổ đại phát minh chữ số 0 và hệ 10 chữ số.'
+      },
+      {
+        question: 'Ai là người thống nhất Trung Quốc và xưng Hoàng đế năm 221 TCN?',
+        type: 'mcq',
+        options: ['Hán Vũ Đế', 'Tần Thủy Hoàng', 'Đường Thái Tông', 'Tống Thái Tổ'],
+        answerIndex: 1,
+        hint: 'Chủ nhân lăng mộ đội quân đất nung.',
+        explanation: 'Tần Thủy Hoàng lập ra triều đại phong kiến tập quyền đầu tiên.'
+      },
+      {
+        question: 'Nền kinh tế phương Tây cổ đại (Hy Lạp & La Mã) phát triển mạnh mẽ ngành nào?',
+        type: 'mcq',
+        options: ['Nông nghiệp trồng lúa nước', 'Thủ công nghiệp và thương nghiệp hàng hải', 'Chăn nuôi du mục', 'Săn bắt hái lượm'],
+        answerIndex: 1,
+        hint: 'Nhờ vị trí giáp biển Địa Trung Hải.',
+        explanation: 'Bờ biển khúc khuỷu, nhiều cảng tốt thúc đẩy thương mại đường biển.'
+      },
+      {
+        question: 'Thể chế Dân chủ chủ nô đạt đến đỉnh cao tại thành bang nào của Hy Lạp?',
+        type: 'mcq',
+        options: ['Xpác-ta (Sparta)', 'A-ten (Aten)', 'Cơ-rét (Crete)', 'Trôi (Troy)'],
+        answerIndex: 1,
+        hint: 'Cái nôi của dân chủ phương Tây.',
+        explanation: 'Aten là thành bang dân chủ tiêu biểu nhất thời cổ đại.'
+      },
+      {
+        question: 'Hệ thống chữ cái A, B, C (Latinh) ngày nay có nguồn gốc từ đâu?',
+        type: 'mcq',
+        options: ['Ai Cập & Lưỡng Hà', 'Hy Lạp & La Mã cổ đại', 'Ấn Độ cổ đại', 'Trung Quốc cổ đại'],
+        answerIndex: 1,
+        hint: 'Chữ cái Hy Lạp và La Mã.',
+        explanation: 'Chữ cái Latinh là di sản vĩ đại của Hy Lạp và La Mã.'
+      },
+      {
+        question: 'Công trình Đấu trường Colosseum nổi tiếng nằm ở quốc gia cổ đại nào?',
+        type: 'mcq',
+        options: ['Hy Lạp cổ đại', 'Đế chế La Mã', 'Ai Cập cổ đại', 'Ba Tư cổ đại'],
+        answerIndex: 1,
+        hint: 'Kỳ quan kiến trúc tại thủ đô Rome ngày nay.',
+        explanation: 'Đấu trường Colosseum là biểu tượng sức mạnh đế chế La Mã.'
+      },
+      {
+        question: 'Sự kiện nào đánh dấu sự kết thúc của thời kỳ Cổ đại phương Tây năm 476?',
+        type: 'mcq',
+        options: ['Tần Thủy Hoàng lên ngôi', 'Đế chế Tây La Mã sụp đổ', 'Chiến tranh Ba Tư bùng nổ', 'Xây xong Kim tự tháp'],
+        answerIndex: 1,
+        hint: 'Tây La Mã bị người Man di xâm chiếm.',
+        explanation: 'Năm 476, Tây La Mã sụp đổ, mở ra thời Trung đại.'
+      },
+      {
+        question: 'Nhà toán học Hy Lạp cổ đại nổi tiếng với Định lý về tam giác vuông là:',
+        type: 'mcq',
+        options: ['Euclid (Ơ-cli-đơ)', 'Pythagoras (Pi-ta-go)', 'Archimedes (Ác-si-mét)', 'Thales (Ta-lét)'],
+        answerIndex: 1,
+        hint: 'Định lý bình phương cạnh huyền.',
+        explanation: 'Pythagoras phát minh định lý toán học kinh điển.'
+      },
+      {
+        question: 'Dương lịch chúng ta dùng ngày nay được hoàn thiện dựa trên cách tính lịch của:',
+        type: 'mcq',
+        options: ['Người Trung Quốc', 'Người La Mã và Hy Lạp cổ đại', 'Người Ấn Độ', 'Người Babylon'],
+        answerIndex: 1,
+        hint: 'Lịch Julius và Gregorian.',
+        explanation: 'Dương lịch tính theo chu kỳ Trái Đất quay quanh Mặt Trời của người La Mã.'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 7. ÔN TẬP CHƯƠNG 4: ĐÔNG NAM Á TỪ CÔNG NGUYÊN ĐẾN THẾ KỶ X (ĐÚNG 15 CÂU)
+  // =========================================================================
+  {
+    id: 'quiz-h6-ch4-revision',
+    title: 'Lịch sử 6 - Ôn tập Chương 4: Đông Nam Á từ thế kỷ I đến thế kỷ X',
+    titleEn: 'History 6 - Chapter 4 Revision: Southeast Asia 1st - 10th Century',
+    grade: 6,
+    semester: 1,
+    subject: 'Lịch sử và Địa lý',
+    subjectVi: 'Phân môn Lịch sử',
+    category: 'social',
+    testType: 'regular',
+    durationMinutes: 15,
+    xpReward: 100,
+    description: 'Bộ 15 câu hỏi trắc nghiệm ôn tập Chương 4: Vị trí địa lý, các vương quốc cổ Đông Nam Á và thành tựu giao lưu văn hóa.',
+    descriptionEn: 'Chapter 4 Revision Quiz: 15 MCQs on Southeast Asian ancient kingdoms, trade routes, and cultural exchange.',
+    questions: [
+      {
+        question: 'Khu vực Đông Nam Á nằm ở vị trí địa lý chiến lược như thế nào?',
+        type: 'mcq',
+        options: ['Nằm biệt lập giữa đại dương', 'Là cầu nối giữa Ấn Độ Dương - Thái Bình Dương và Ấn Độ - Trung Hoa', 'Nằm ở cực Bắc Trái Đất', 'Nằm hoàn toàn trong sa mạc'],
+        answerIndex: 1,
+        hint: 'Ngã tư đường giao thương hàng hải thế giới.',
+        explanation: 'Đông Nam Á là phễu giao lưu giữa hai đại dương và hai nền văn minh lớn.'
+      },
+      {
+        question: 'Khí hậu đặc trưng nổi bật của toàn bộ khu vực Đông Nam Á là:',
+        type: 'mcq',
+        options: ['Khí hậu ôn đới lạnh giá', 'Khí hậu nhiệt đới gió mùa', 'Khí hậu hoang mạc khô hạn', 'Khí hậu cực đới'],
+        answerIndex: 1,
+        hint: 'Nóng ẩm, mưa nhiều, có gió mùa.',
+        explanation: 'Khí hậu nhiệt đới gió mùa tạo điều kiện cây lúa nước phát triển.'
+      },
+      {
+        question: 'Nền tảng kinh tế nông nghiệp chung của các dân tộc Đông Nam Á là:',
+        type: 'mcq',
+        options: ['Trồng lúa mì', 'Trồng lúa nước', 'Chăn nuôi cừu du mục', 'Săn bắt cá tôm biển sâu'],
+        answerIndex: 1,
+        hint: 'Cây lương thực chủ đạo.',
+        explanation: 'Văn minh lúa nước là mẫu số chung của văn hóa Đông Nam Á.'
+      },
+      {
+        question: 'Một trong những quốc gia cổ đại xuất hiện sớm nhất ở hạ lưu sông Mê Công là:',
+        type: 'mcq',
+        options: ['Vương quốc Phù Nam', 'Đế quốc La Mã', 'Vương quốc Anh', 'Đại Việt'],
+        answerIndex: 0,
+        hint: 'Thương cảng Óc Eo nổi tiếng.',
+        explanation: 'Phù Nam ra đời từ thế kỷ I TCN ở Nam Bộ Việt Nam và Campuchia.'
+      },
+      {
+        question: 'Thương cảng quốc tế sầm uất bậc nhất của Vương quốc Phù Nam có tên là:',
+        type: 'mcq',
+        options: ['Vân Đồn', 'Óc Eo (An Giang)', 'Hội An', 'Đà Nẵng'],
+        answerIndex: 1,
+        hint: 'Di chỉ khảo cổ ở An Giang.',
+        explanation: 'Óc Eo từng giao thương với La Mã, Ba Tư, Ấn Độ và Trung Hoa.'
+      },
+      {
+        question: 'Vương quốc cổ Chăm-pa được hình thành ở khu vực nào của Việt Nam ngày nay?',
+        type: 'mcq',
+        options: ['Vùng Bắc Bộ', 'Vùng Duyên hải Trung Bộ', 'Vùng Nam Bộ', 'Vùng Tây Bắc'],
+        answerIndex: 1,
+        hint: 'Thánh địa Mỹ Sơn thuộc Quảng Nam.',
+        explanation: 'Chăm-pa hình thành từ thế kỷ II ở dải đất Trung Bộ.'
+      },
+      {
+        question: 'Đặc điểm phân loại các vương quốc phong kiến Đông Nam Á gồm 2 nhóm:',
+        type: 'mcq',
+        options: ['Vương quốc du mục và trồng trọt', 'Vương quốc lục địa và vương quốc hải đảo (ven biển)', 'Vương quốc sa mạc và băng giá', 'Vương quốc miền núi và thung lũng'],
+        answerIndex: 1,
+        hint: 'Nhóm mạnh về lúa nước và nhóm mạnh về buôn bán biển.',
+        explanation: 'Lục địa (Angkor, Pagan) và Hải đảo (Sri Vijaya, Phù Nam).'
+      },
+      {
+        question: 'Vương quốc đường biển bá chủ hàng hải vùng đảo Indonesia từ thế kỷ VII là:',
+        type: 'mcq',
+        options: ['Sri Vijaya (Sơ-ri Vi-jay-a)', 'Pagan', 'Sukhothai', 'Lan Xang'],
+        answerIndex: 0,
+        hint: 'Đế chế kiểm soát eo biển Malacca.',
+        explanation: 'Sri Vijaya làm chủ đường thương mại biển qua eo Malacca.'
+      },
+      {
+        question: 'Hai tôn giáo lớn từ Ấn Độ được cư dân Đông Nam Á đón nhận mạnh mẽ là:',
+        type: 'mcq',
+        options: ['Kitô giáo và Hồi giáo', 'Phật giáo và Ấn Độ giáo (Hindu)', 'Nho giáo và Đạo giáo', 'Do Thái giáo'],
+        answerIndex: 1,
+        hint: 'Tôn giáo tạo nên đền tháp Mỹ Sơn và Borobudur.',
+        explanation: 'Phật giáo và Hindu giáo ảnh hưởng sâu sắc đến chính trị và nghệ thuật.'
+      },
+      {
+        question: 'Cư dân Đông Nam Á đã tiếp thu chữ viết nào của Ấn Độ để sáng tạo chữ viết riêng?',
+        type: 'mcq',
+        options: ['Chữ La-tinh', 'Chữ Phạn (Sanskrit)', 'Chữ Hán', 'Chữ tượng hình'],
+        answerIndex: 1,
+        hint: 'Chữ cổ của các nhà sư Ấn Độ.',
+        explanation: 'Chữ Phạn là nền tảng sáng tạo ra chữ Chăm cổ, Khmer cổ, Mon cổ.'
+      },
+      {
+        question: 'Quần thể đại bảo tháp Phật giáo đồ sộ bậc nhất thế giới ở Indonesia là:',
+        type: 'mcq',
+        options: ['Thánh địa Mỹ Sơn', 'Đại bảo tháp Bo-ro-bu-đưa (Borobudur)', 'Đền Angkor Wat', 'Chùa Vàng Yangon'],
+        answerIndex: 1,
+        hint: 'Xây dựng vào thế kỷ IX trên đảo Java.',
+        explanation: 'Borobudur là di sản Phật giáo lớn nhất thế giới.'
+      },
+      {
+        question: 'Quần thể di tích đền tháp Hindu giáo nổi tiếng của người Chăm ở Quảng Nam là:',
+        type: 'mcq',
+        options: ['Tháp Bà Ponagar', 'Thánh địa Mỹ Sơn', 'Tháp Bánh Ít', 'Tháp Nhạn'],
+        answerIndex: 1,
+        hint: 'Di sản văn hóa thế giới UNESCO tại Quảng Nam.',
+        explanation: 'Thánh địa Mỹ Sơn là trung tâm đền tháp Hindu giáo Chăm-pa.'
+      },
+      {
+        question: 'Yếu tố cốt lõi thể hiện tính "Thống nhất trong đa dạng" của văn hóa Đông Nam Á là:',
+        type: 'mcq',
+        options: ['Dùng chung một ngôn ngữ', 'Cùng chung bản sắc văn minh lúa nước và tín ngưỡng bản địa', 'Cùng một triều đại cai trị', 'Cùng một loại trang phục'],
+        answerIndex: 1,
+        hint: 'Nền tảng lúa nước hòa quyện đa dạng dân tộc.',
+        explanation: 'Thống nhất ở nền lúa nước và tín ngưỡng; đa dạng ở sắc thái tộc người.'
+      },
+      {
+        question: 'Mặt hàng xuất khẩu độc đáo nổi tiếng của các vương quốc biển Đông Nam Á là:',
+        type: 'mcq',
+        options: ['Đạn dược', 'Hương liệu, gia vị (trầm hương, quế, hồ tiêu) và gốm sứ', 'Máy móc', 'Xe cộ'],
+        answerIndex: 1,
+        hint: 'Sản vật rừng nhiệt đới quý hiếm.',
+        explanation: 'Gia vị và hương liệu Đông Nam Á được thương nhân thế giới săn lùng.'
+      },
+      {
+        question: 'Thế kỷ IX - X đánh dấu bước ngoặt gì ở khu vực Đông Nam Á?',
+        type: 'mcq',
+        options: ['Toàn khu vực bị xâm chiếm', 'Sự bước vào thời kỳ hoàng kim của các vương quốc phong kiến', 'Các vương quốc sụp đổ hoàn toàn', 'Kinh tế suy ngoái'],
+        answerIndex: 1,
+        hint: 'Sự trỗi dậy rực rỡ của Angkor, Pagan, Dai Viet.',
+        explanation: 'Thế kỷ X mở ra giai đoạn phát triển thịnh vượng của các quốc gia phong kiến.'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 8. ÔN TẬP CHƯƠNG 5: VIỆT NAM TỪ THẾ KỶ VII TCN ĐẾN ĐẦU THẾ KỶ X (ĐÚNG 15 CÂU)
+  // =========================================================================
+  {
+    id: 'quiz-h6-ch5-revision',
+    title: 'Lịch sử 6 - Ôn tập Chương 5: Việt Nam từ thế kỷ VII TCN đến đầu thế kỷ X',
+    titleEn: 'History 6 - Chapter 5 Revision: Vietnam 7th Century BC to 10th Century AD',
+    grade: 6,
+    semester: 2,
+    subject: 'Lịch sử và Địa lý',
+    subjectVi: 'Phân môn Lịch sử',
+    category: 'social',
+    testType: 'final',
+    durationMinutes: 15,
+    xpReward: 120,
+    description: 'Bộ 15 câu hỏi trắc nghiệm ôn tập Chương 5: Thời đại Hùng Vương - An Dương Vương, các cuộc đấu tranh chống Bắc thuộc và chiến thắng Bạch Đằng 938.',
+    descriptionEn: 'Chapter 5 Revision Quiz: 15 MCQs on Van Lang - Au Lac, Anti-Northern Domination resistance, and Ngô Quyền victory 938.',
+    questions: [
+      {
+        question: 'Nhà nước đầu tiên trong lịch sử dân tộc Việt Nam có tên là gì?',
+        type: 'mcq',
+        options: ['Âu Lạc', 'Văn Lang', 'Vạn Xuân', 'Đại Cồ Việt'],
+        answerIndex: 1,
+        hint: 'Ra đời thế kỷ VII TCN dưới thời Vua Hùng.',
+        explanation: 'Nhà nước Văn Lang do Vua Hùng thành lập đóng đô ở Phong Châu.'
+      },
+      {
+        question: 'Kinh đô của nhà nước Văn Lang đặt tại địa danh nào ngày nay?',
+        type: 'mcq',
+        options: ['Cổ Loa (Hà Nội)', 'Phong Châu (Phú Thọ)', 'Hoa Lư (Ninh Bình)', 'Thăng Long (Hà Nội)'],
+        answerIndex: 1,
+        hint: 'Nơi có di tích Đền Hùng thiêng liêng.',
+        explanation: 'Phong Châu thuộc Việt Trì, Phú Thọ ngày nay.'
+      },
+      {
+        question: 'Kỹ thuật chế tác kim loại đỉnh cao của cư dân Văn Lang - Âu Lạc là:',
+        type: 'mcq',
+        options: ['Rèn sắt', 'Đúc đồng thau (Đông Sơn)', 'Đúc vàng', 'Rèn nhôm'],
+        answerIndex: 1,
+        hint: 'Sản phẩm tiêu biểu là Trống đồng Đông Sơn.',
+        explanation: 'Nghệ thuật đúc đồng Đông Sơn đạt trình độ đỉnh cao thế giới.'
+      },
+      {
+        question: 'Thục Phán hợp nhất Lạc Việt và Tây Âu lập ra nhà nước Âu Lạc sau thắng lợi nào?',
+        type: 'mcq',
+        options: ['Kháng chiến chống quân Minh', 'Kháng chiến chống quân Tần (218 - 208 TCN)', 'Kháng chiến chống quân Nam Hán', 'Đánh tan quân Nguyên Mông'],
+        answerIndex: 1,
+        hint: 'Đánh bại tướng Tần Đồ Thư.',
+        explanation: 'Sau khi đánh bại quân Tần, Thục Phán xưng An Dương Vương lập nước Âu Lạc.'
+      },
+      {
+        question: 'Công trình thành lũy hình xoáy trôn ốc kiên cố thời Âu Lạc là:',
+        type: 'mcq',
+        options: ['Thành Nhà Hồ', 'Thành Cổ Loa', 'Thành Đại La', 'Thành Sơn Tây'],
+        answerIndex: 1,
+        hint: 'Nằm ở Đông Anh, Hà Nội.',
+        explanation: 'Thành Cổ Loa 9 vòng xoáy trôn ốc là kiệt tác quân sự cổ đại.'
+      },
+      {
+        question: 'Vũ khí thần kỳ bắn một lần nhiều mũi tên đồng thời An Dương Vương là:',
+        type: 'mcq',
+        options: ['Súng thần công', 'Nỏ liên châu (Nỏ thần)', 'Cung tên tre', 'Pháo đại bác'],
+        answerIndex: 1,
+        hint: 'Do Cao Lỗ chế tạo.',
+        explanation: 'Nỏ liên châu bắn ra hàng loạt mũi tên đồng sắc bén.'
+      },
+      {
+        question: 'Năm 179 TCN đánh dấu cột mốc đau thương nào trong lịch sử dân tộc?',
+        type: 'mcq',
+        options: ['Nhà Tần sụp đổ', 'Triệu Đà dùng mưu chiếm Âu Lạc, mở đầu thời Bắc thuộc', 'Nước Văn Lang ra đời', 'Ngô Quyền xưng vương'],
+        answerIndex: 1,
+        hint: 'Truyện Mị Châu - Trọng Thủy.',
+        explanation: 'Triệu Đà chiếm Âu Lạc, bắt đầu hơn 1000 năm Bắc thuộc.'
+      },
+      {
+        question: 'Mục đích thâm độc nhất của chính sách đô hộ phương Bắc đối với nước ta là:',
+        type: 'mcq',
+        options: ['Mở rộng đường giao thông', 'Sáp nhập lãnh thổ và đồng hóa dân tộc Việt', 'Giúp nhân dân làm giàu', 'Xây dựng trường học'],
+        answerIndex: 1,
+        hint: 'Xóa tên nước ta và biến người Việt thành người Hán.',
+        explanation: 'Chính sách đồng hóa nhằm tiêu diệt văn hóa và bản sắc Việt.'
+      },
+      {
+        question: 'Cuộc khởi nghĩa mở đầu cho phong trào chống Bắc thuộc bùng nổ năm 40 do ai lãnh đạo?',
+        type: 'mcq',
+        options: ['Bà Triệu', 'Hai Bà Trưng (Trưng Trắc, Trưng Nhị)', 'Lý Bí', 'Mai Thúc Loan'],
+        answerIndex: 1,
+        hint: 'Hát Môn - Mê Linh "Đánh đuổi Tô Định".',
+        explanation: 'Hai Bà Trưng phất cờ khởi nghĩa năm 40 giành lại độc lập 3 năm.'
+      },
+      {
+        question: 'Lý Bí lãnh đạo nhân dân khởi nghĩa năm 542 và lập ra nhà nước có tên là:',
+        type: 'mcq',
+        options: ['Đại Việt', 'Vạn Xuân', 'Đại Cồ Việt', 'Âu Lạc'],
+        answerIndex: 1,
+        hint: 'Mong muốn đất nước vạn mùa xuân độc lập.',
+        explanation: 'Năm 544, Lý Bí xưng Lý Nam Đế, đặt tên nước là Vạn Xuân.'
+      },
+      {
+        question: 'Khúc Thừa Dụ có công lao lịch sử gì vào năm 905?',
+        type: 'mcq',
+        options: ['Đúc trống đồng', 'Chiếm phủ Tống Bình, xưng Tiết độ sứ giành quyền tự chủ', 'Xây thành Cổ Loa', 'Xưng Vua ở Hoa Lư'],
+        answerIndex: 1,
+        hint: 'Đặt móng nền tự chủ đầu thế kỷ X.',
+        explanation: 'Khúc Thừa Dụ nhân lúc nhà Đường suy yếu đã giành quyền tự chủ.'
+      },
+      {
+        question: 'Vị anh hùng dân tộc lãnh đạo trận đại thắng Bạch Đằng năm 938 là:',
+        type: 'mcq',
+        options: ['Dương Đình Nghệ', 'Ngô Quyền', 'Lạc Long Quân', 'Trần Hưng Đạo'],
+        answerIndex: 1,
+        hint: 'Người nghĩ ra kế sách bãi cọc ngầm bịt sắt.',
+        explanation: 'Ngô Quyền đại phá quân Nam Hán trên sông Bạch Đằng năm 938.'
+      },
+      {
+        question: 'Kế sách độc đáo nhất Ngô Quyền sử dụng trong trận Bạch Đằng 938 là:',
+        type: 'mcq',
+        options: ['Đào hầm ngầm', 'Cắm bãi cọc gỗ bịt sắt vạt nhọn dưới lòng sông phối hợp thủy triều', 'Dùng hỏa công đốt rừng', 'Thương lượng hòa hoãn'],
+        answerIndex: 1,
+        hint: 'Lợi dụng hiện tượng tự nhiên nước triều lên xuống.',
+        explanation: 'Bãi cọc ngầm lợi dụng thủy triều là đỉnh cao nghệ thuật quân sự.'
+      },
+      {
+        question: 'Tướng giặc Nam Hán chỉ huy bị tử trận trên sông Bạch Đằng năm 938 là:',
+        type: 'mcq',
+        options: ['Tô Định', 'Mã Viện', 'Lưu Hoằng Tháo', 'Triệu Đà'],
+        answerIndex: 2,
+        hint: 'Hoàng tử con vua Nam Hán Lưu Nghiễm.',
+        explanation: 'Lưu Hoằng Tháo trúng kế cọc ngầm và tử trận.'
+      },
+      {
+        question: 'Ý nghĩa lịch sử vĩ đại nhất của chiến thắng Bạch Đằng năm 938 là:',
+        type: 'mcq',
+        options: ['Giảm thuế cho nhân dân', 'Chấm dứt hoàn toàn ách thống trị hơn 1000 năm Bắc thuộc, mở ra kỷ nguyên độc lập lâu dài', 'Xây dựng thêm thành quách', 'Mở mang đường giao thương'],
+        answerIndex: 1,
+        hint: 'Bước ngoặt kết thúc ngàn năm ngoại thuộc.',
+        explanation: 'Bạch Đằng 938 khẳng định dứt khoát quyền sống độc lập, tự do muôn đời của dân tộc Việt Nam.'
+      }
+    ]
   }
 ];

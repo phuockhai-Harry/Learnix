@@ -20,7 +20,12 @@ import {
   Minimize2,
   Calendar,
   Compass,
-  ArrowRight
+  ArrowRight,
+  ExternalLink,
+  Play,
+  Tv,
+  HelpCircle,
+  Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GRADE_6_HISTORY_LESSONS, HistoryLessonArticle, HistoryFlashcardItem } from '../data/historyGrade6Data';
@@ -30,6 +35,101 @@ import { jsPDF } from 'jspdf';
 import { removeVietnameseTones } from '../lib/pdfUnicode';
 import { QuizA4PdfButton } from './QuizA4PdfButton';
 import { HistoryGeographySubNav, SubsystemType } from './HistoryGeographySubNav';
+import { VisualMindmapCanvas } from './VisualMindmapCanvas';
+import { VisualSketchnoteCanvas } from './VisualSketchnoteCanvas';
+import { EmbeddedYoutubePlayer } from './EmbeddedYoutubePlayer';
+
+export interface VietJackVideoItem {
+  id: string;
+  lessonId: string;
+  chapterTag: string;
+  title: string;
+  teacher: string;
+  duration: string;
+  views: string;
+  description: string;
+  keyTopics: string[];
+}
+
+export const VIETJACK_HISTORY_VIDEOS: VietJackVideoItem[] = [
+  {
+    id: 'w2v1I83L6S0',
+    lessonId: 'history-g6-lesson-1',
+    chapterTag: 'Chương 1',
+    title: 'Bài 1: Lịch sử và Cuộc sống - Lịch sử lớp 6 Kết nối tri thức',
+    teacher: 'Cô Nguyễn Phương Nhi (Giáo viên VietJack)',
+    duration: '22:15',
+    views: '145.200 lượt xem',
+    description: 'Giảng chi tiết bài 1 Lịch sử 6 sách Kết nối tri thức: Khái niệm lịch sử, phân biệt 3 loại tư liệu lịch sử (truyền miệng, hiện vật, chữ viết) và lý giải vì sao cần học môn Lịch sử.',
+    keyTopics: ['Lịch sử là gì?', 'Tư liệu hiện vật, truyền miệng, chữ viết', 'Ý nghĩa môn Lịch sử trong đời sống']
+  },
+  {
+    id: 'q_6XfDkP1xE',
+    lessonId: 'history-g6-lesson-1',
+    chapterTag: 'Chương 1',
+    title: 'Bài 2: Thời gian trong lịch sử - Lịch sử lớp 6 Kết nối tri thức',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '18:40',
+    views: '98.500 lượt xem',
+    description: 'Hướng dẫn quy tắc tính thời gian trong lịch sử: Âm lịch, Dương lịch, Công lịch, quy đổi Thập kỷ, Thế kỷ, Thiên niên kỷ và tính mốc thời gian Trước Công nguyên (TCN).',
+    keyTopics: ['Cách tính Âm lịch & Dương lịch', 'Quy đổi Thế kỷ và Thập kỷ', 'Mốc thời gian TCN và CN']
+  },
+  {
+    id: '3eKzI8qJ9X4',
+    lessonId: 'history-g6-lesson-3',
+    chapterTag: 'Chương 2',
+    title: 'Bài 3: Nguồn gốc loài người - Lịch sử lớp 6 Kết nối tri thức',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '25:10',
+    views: '182.100 lượt xem',
+    description: 'Phân tích 3 chặng đường tiến hóa loài người từ Vượn người thành Người tối cổ và Người tinh khôn. Chứng minh Việt Nam là cái nôi xuất hiện con người sớm qua các di chỉ An Khê, Lạng Sơn.',
+    keyTopics: ['Vượn cổ ➔ Người tối cổ ➔ Người tinh khôn', 'Ý nghĩa của việc phát minh ra Lửa', 'Dấu tích Người tối cổ ở An Khê, Lạng Sơn']
+  },
+  {
+    id: '9pY6w4eJ8rM',
+    lessonId: 'history-g6-lesson-6',
+    chapterTag: 'Chương 3',
+    title: 'Bài 6: Các nền văn minh Cổ đại - Lịch sử lớp 6 Kết nối tri thức',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '28:35',
+    views: '210.400 lượt xem',
+    description: 'Tổng hợp văn minh Ai Cập, Lưỡng Hà, Ấn Độ, Trung Quốc, Hy Lạp và La Mã. So sánh kinh tế nông nghiệp phương Đông và thương nghiệp biển phương Tây cổ đại.',
+    keyTopics: ['Sông Nile và Kim tự tháp Ai Cập', 'Luật Hammurabi & Chữ hình nêm', 'Dân chủ Aten & Chữ cái Latinh']
+  },
+  {
+    id: '5X4Y1a2b3c4',
+    lessonId: 'history-g6-lesson-10',
+    chapterTag: 'Chương 4',
+    title: 'Bài 10: Đông Nam Á từ thế kỷ I đến thế kỷ X - Lịch sử 6 KNTT',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '24:50',
+    views: '125.800 lượt xem',
+    description: 'Vị trí chiến lược ngã tư đại dương của Đông Nam Á, thương cảng Óc Eo Phù Nam, Thánh địa Mỹ Sơn Chăm-pa và Bảo tháp Borobudur Indonesia.',
+    keyTopics: ['Cầu nối hải hải thế giới', 'Vương quốc Phù Nam & Chăm-pa', 'Giao lưu văn hóa Ấn Độ']
+  },
+  {
+    id: '8Z7Y6X5W4V3',
+    lessonId: 'history-g6-lesson-12',
+    chapterTag: 'Chương 5',
+    title: 'Bài 12: Nhà nước Văn Lang - Âu Lạc - Lịch sử lớp 6 Kết nối tri thức',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '26:15',
+    views: '230.900 lượt xem',
+    description: 'Bài giảng sinh động về Thời đại Hùng Vương dựng nước Văn Lang và An Dương Vương dựng nước Âu Lạc, xây thành Cổ Loa, nỏ thần liên châu và kỹ thuật đúc Trống đồng Đông Sơn.',
+    keyTopics: ['Thủy tổ Vua Hùng & Bộ máy Văn Lang', 'An Dương Vương & Thành Cổ Loa', 'Nghệ thuật đúc đồng Đông Sơn']
+  },
+  {
+    id: '1A2B3C4D5E6',
+    lessonId: 'history-g6-lesson-17',
+    chapterTag: 'Chương 5',
+    title: 'Bài 17: Bước ngoặt lịch sử & Chiến thắng Bạch Đằng 938 - VietJack',
+    teacher: 'Cô Nguyễn Phương Nhi (VietJack)',
+    duration: '30:00',
+    views: '315.000 lượt xem',
+    description: 'Phân tích thiên tài quân sự Ngô Quyền, mưu lược bãi cọc ngầm lợi dụng thủy triều sông Bạch Đằng năm 938 đập tan quân xâm lược Nam Hán, chấm dứt nghìn năm Bắc thuộc.',
+    keyTopics: ['Khúc Thừa Dụ giành quyền tự chủ 905', 'Mưu lược bãi cọc ngầm Bạch Đằng', 'Ý nghĩa vĩ đại đại thắng năm 938']
+  }
+];
 
 interface HistoryStudyHubProps {
   initialSubsystem?: SubsystemType;
@@ -78,6 +178,13 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
   // Mindmap expanded branch
   const [expandedBranchId, setExpandedBranchId] = useState<string | null>(null);
 
+  // VietJack Video state
+  const [activeVideoId, setActiveVideoId] = useState<string>(VIETJACK_HISTORY_VIDEOS[0].id);
+  const activeVideo = VIETJACK_HISTORY_VIDEOS.find(v => v.id === activeVideoId) || VIETJACK_HISTORY_VIDEOS[0];
+
+  // Essay review questions toggle state
+  const [expandedEssayIndex, setExpandedEssayIndex] = useState<number | null>(0);
+
   // Geography test list toggle
   const [geoTab, setGeoTab] = useState<'all' | 'regular' | 'midterm' | 'final'>('all');
 
@@ -114,7 +221,7 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
     });
   };
 
-  // Generate Authentic 2-Page PDF with jsPDF
+  // Generate Short 2-Paragraph PDF with jsPDF
   const handleDownloadLesson2PagePDF = async () => {
     try {
       setIsPdfGenerating(true);
@@ -126,7 +233,7 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
 
       const t = (str: string) => removeVietnameseTones(str || '');
 
-      // ================= PAGE 1 =================
+      // Header Banner
       doc.setFillColor(180, 83, 9); // Amber-700
       doc.rect(10, 10, 190, 24, 'F');
       
@@ -138,145 +245,66 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.text(t(currentLesson.title), 105, 25, { align: 'center' });
-      doc.text(t(`TRANG 1/2: KIEN THUC TRONG TAM & SO DO BAI HOC`), 105, 30, { align: 'center' });
+      doc.text(t(`TAI LIEU TOM TAT NGAN GON (2 DOAN VAN COT LOI)`), 105, 30, { align: 'center' });
 
-      // Concept Box
+      // Paragraph 1 Box: Khai niem & Bôi canh cot loi
       doc.setFillColor(254, 243, 199); // Amber-100
-      doc.roundedRect(10, 38, 190, 20, 2, 2, 'F');
+      doc.roundedRect(10, 40, 190, 48, 3, 3, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
+      doc.setFontSize(10.5);
       doc.setTextColor(146, 64, 14); // Amber-800
-      doc.text(t('I. KHAI NIEM VA Y NGHIA COT LOI:'), 14, 44);
+      doc.text(t('DOAN 1: KHAI NIEM & BOI CANH LICH SU COT LOI'), 15, 48);
+      
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(9);
       doc.setTextColor(30, 41, 59);
-      const conceptLines = doc.splitTextToSize(t(currentLesson.page1.mainConcept), 182);
-      doc.text(conceptLines, 14, 49);
+      const p1Text = `${currentLesson.page1.mainConcept} ${currentLesson.page1.coreKnowledge[0]?.bullets.join(' ') || ''}`;
+      const p1Lines = doc.splitTextToSize(t(p1Text), 180);
+      doc.text(p1Lines, 15, 55, { maxWidth: 180 });
 
-      // Core Knowledge Sections
-      let curY = 64;
-      currentLesson.page1.coreKnowledge.forEach((sec, idx) => {
+      // Paragraph 2 Box: Tu lieu, Y nghia & Bai hoc
+      doc.setFillColor(241, 245, 249); // Slate-100
+      doc.roundedRect(10, 96, 190, 48, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10.5);
+      doc.setTextColor(30, 41, 59); // Slate-800
+      doc.text(t('DOAN 2: TU LIEU SU HOC, Y NGHIA & BAI HOC TRUC QUAN'), 15, 104);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(51, 65, 85);
+      const p2Text = `${currentLesson.sketchnote.takeaway} ${currentLesson.page2.goldenRules.join(' ') || ''}`;
+      const p2Lines = doc.splitTextToSize(t(p2Text), 180);
+      doc.text(p2Lines, 15, 111, { maxWidth: 180 });
+
+      // Timeline Highlights Ribbon
+      if (currentLesson.page1.chronologyTimeline && currentLesson.page1.chronologyTimeline.length > 0) {
+        doc.setFillColor(254, 252, 232); // Yellow-50
+        doc.roundedRect(10, 152, 190, 36, 3, 3, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
+        doc.setFontSize(9.5);
         doc.setTextColor(180, 83, 9);
-        doc.text(t(`${idx + 1}. ${sec.sectionTitle}`), 12, curY);
-        curY += 5;
+        doc.text(t('MOC LICH SU THEN CHOT:'), 15, 160);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(30, 41, 59);
-        sec.bullets.forEach(b => {
-          const bulletLines = doc.splitTextToSize(t(`• ${b}`), 184);
-          doc.text(bulletLines, 14, curY);
-          curY += bulletLines.length * 4.2;
-        });
-        curY += 2;
-      });
-
-      // Timeline box on Page 1
-      if (currentLesson.page1.chronologyTimeline && currentLesson.page1.chronologyTimeline.length > 0) {
-        doc.setFillColor(241, 245, 249);
-        doc.roundedRect(10, curY, 190, 40, 2, 2, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9.5);
-        doc.setTextColor(15, 23, 42);
-        doc.text(t('DONG THOI GIAN LICH SU TIEU BIEU:'), 14, curY + 6);
-        curY += 11;
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        currentLesson.page1.chronologyTimeline.forEach(tl => {
-          doc.text(t(`[${tl.time}]: ${tl.event}`), 16, curY);
-          curY += 5;
+        let timelineY = 166;
+        currentLesson.page1.chronologyTimeline.slice(0, 3).forEach(tl => {
+          doc.text(t(`• [${tl.time}]: ${tl.event}`), 18, timelineY);
+          timelineY += 6;
         });
       }
 
-      // Footer Page 1
+      // Footer
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
-      doc.text(t('Learnix Education System - Tai lieu on tap chuan kien thuc Lich su lop 6'), 105, 285, { align: 'center' });
-      doc.text('Trang 1 / 2', 195, 285, { align: 'right' });
-
-      // ================= PAGE 2 =================
-      doc.addPage();
-      
-      doc.setFillColor(30, 41, 59); // Slate-800
-      doc.rect(10, 10, 190, 20, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(255, 255, 255);
-      doc.text(t(`TRANG 2/2: TU LIEU SU HOC & CAU HOI CUNG CO - ${currentLesson.title}`), 105, 22, { align: 'center' });
-
-      let curY2 = 38;
-      // Historical Quotes
-      if (currentLesson.page2.historicalQuotes.length > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(180, 83, 9);
-        doc.text(t('II. TU LIEU SU LIEU TRICH DAN:'), 12, curY2);
-        curY2 += 6;
-
-        currentLesson.page2.historicalQuotes.forEach(q => {
-          doc.setFillColor(254, 242, 242);
-          doc.roundedRect(12, curY2, 186, 18, 2, 2, 'F');
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8);
-          doc.setTextColor(153, 27, 27);
-          doc.text(t(`Nguon: ${q.source}`), 16, curY2 + 5);
-          doc.setFont('helvetica', 'italic');
-          doc.setTextColor(15, 23, 42);
-          doc.text(t(q.quote), 16, curY2 + 10);
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(7.5);
-          doc.setTextColor(100, 116, 139);
-          doc.text(t(q.context), 16, curY2 + 15, { maxWidth: 178 });
-          curY2 += 22;
-        });
-      }
-
-      // Golden Takeaways
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(180, 83, 9);
-      doc.text(t('III. GHI NHO VANG COT LOI:'), 12, curY2);
-      curY2 += 6;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(30, 41, 59);
-      currentLesson.page2.goldenRules.forEach(rule => {
-        const ruleLines = doc.splitTextToSize(t(`★ ${rule}`), 184);
-        doc.text(ruleLines, 14, curY2);
-        curY2 += ruleLines.length * 4.5;
-      });
-      curY2 += 4;
-
-      // Review Questions
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(15, 23, 42);
-      doc.text(t('IV. HE THONG CAU HOI CUNG CO & VAN DUNG:'), 12, curY2);
-      curY2 += 6;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(51, 65, 85);
-      currentLesson.page2.reviewQuestions.forEach(q => {
-        const qLines = doc.splitTextToSize(t(q), 184);
-        doc.text(qLines, 14, curY2);
-        curY2 += qLines.length * 4.5;
-      });
-
-      // Footer Page 2
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(t('Learnix Education System - Ban quyen thuoc ve hoc sinh Learnix THCS'), 105, 285, { align: 'center' });
-      doc.text('Trang 2 / 2', 195, 285, { align: 'right' });
+      doc.text(t('Learnix Education System - Tai lieu tom tat 2 doan van Lich su 6 chuẩn GDPT 2018'), 105, 280, { align: 'center' });
 
       // Save PDF
-      doc.save(`Learnix_LichSu6_${currentLesson.id}_2Trang_ChuanA4.pdf`);
+      doc.save(`Learnix_LichSu6_${currentLesson.id}_2DoanVan_TomTat.pdf`);
     } catch (e) {
-      console.error('Error generating 2-page PDF:', e);
+      console.error('Error generating 2-paragraph PDF:', e);
     } finally {
       setIsPdfGenerating(false);
     }
@@ -311,9 +339,17 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
             setActiveHistoryTab('lessons');
             const el = document.getElementById('history-mindmap-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
+          } else if (target === 'sketchnote') {
+            setActiveHistoryTab('lessons');
+            const el = document.getElementById('history-sketchnote-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
           } else if (target === 'flashcards') {
             setActiveHistoryTab('lessons');
             const el = document.getElementById('history-flashcards-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          } else if (target === 'video') {
+            setActiveHistoryTab('lessons');
+            const el = document.getElementById('history-video-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           } else if (target === 'quizzes') {
             if (activeSubsystem === 'history') {
@@ -380,9 +416,18 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                 <span className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Chọn bài học Lịch sử 6 để nghiên cứu tài liệu siêu chi tiết:
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
                   {GRADE_6_HISTORY_LESSONS.map((lesson) => {
                     const isSelected = lesson.id === selectedLessonId;
+                    
+                    // Determine chapter badge
+                    let chapterTag = 'Chương 1';
+                    if (lesson.lessonNumber === 3) chapterTag = 'Chương 2';
+                    else if (lesson.lessonNumber === 6) chapterTag = 'Chương 3';
+                    else if (lesson.lessonNumber === 10) chapterTag = 'Chương 4';
+                    else if (lesson.lessonNumber === 12) chapterTag = 'Chương 5 (Phần 1)';
+                    else if (lesson.lessonNumber === 17) chapterTag = 'Chương 5 (Phần 2)';
+
                     return (
                       <button
                         key={lesson.id}
@@ -399,11 +444,16 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                         }`}
                       >
                         <div>
-                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                            isSelected ? 'bg-amber-200 text-amber-900' : 'bg-gray-100 dark:bg-gray-700 text-gray-600'
-                          }`}>
-                            HK{lesson.semester} • Bài {lesson.lessonNumber}
-                          </span>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                              isSelected ? 'bg-amber-200 text-amber-900' : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200'
+                            }`}>
+                              {chapterTag}
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400">
+                              HK{lesson.semester} • Bài {lesson.lessonNumber}
+                            </span>
+                          </div>
                           <h4 className="font-black text-sm mt-2 leading-snug line-clamp-1">
                             {lesson.title}
                           </h4>
@@ -411,9 +461,9 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                             {lesson.subtitle}
                           </p>
                         </div>
-                        <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-amber-600 pt-2 border-t border-amber-200/40">
-                          <span>Đúng 2 trang PDF</span>
-                          <span>{lesson.flashcards.length} Flashcards</span>
+                        <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-amber-600 dark:text-amber-400 pt-2 border-t border-amber-200/40 dark:border-amber-900/40">
+                          <span>Mindmap + PDF 2 Trang</span>
+                          <span>{lesson.flashcards.length} Cards</span>
                         </div>
                       </button>
                     );
@@ -422,16 +472,16 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
               </div>
 
               {/* -------------------------------------------------------- */}
-              {/* DOCUMENT VIEWER: TÀI LIỆU PDF ĐÚNG 2 TRANG SIÊU CHI TIẾT   */}
+              {/* DOCUMENT VIEWER: TÀI LIỆU PDF TÓM TẮT 2 ĐOẠN VĂN          */}
               {/* -------------------------------------------------------- */}
               <div className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-amber-200 dark:border-amber-900/60 shadow-lg p-6 sm:p-8 space-y-6">
                 
-                {/* Header Action Bar of 2-Page PDF */}
+                {/* Header Action Bar of PDF Viewer */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="space-y-1">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 text-xs font-black uppercase tracking-wider">
                       <FileText className="w-3.5 h-3.5" />
-                      <span>Tài liệu PDF Độc quyền: Chuẩn đúng 2 trang</span>
+                      <span>Tài liệu PDF Tóm Tắt Ngắn Gọn (Đúng 2 Đoạn Văn)</span>
                     </div>
                     <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
                       {currentLesson.title}
@@ -441,284 +491,214 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    {/* Toggle Page 1 & Page 2 */}
-                    <div className="flex items-center p-1 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
-                      <button
-                        onClick={() => setCurrentPdfPage(1)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                          currentPdfPage === 1 
-                            ? 'bg-amber-600 text-white shadow-xs' 
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
-                        }`}
-                      >
-                        📄 Trang 1 (Kiến thức)
-                      </button>
-                      <button
-                        onClick={() => setCurrentPdfPage(2)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                          currentPdfPage === 2 
-                            ? 'bg-amber-600 text-white shadow-xs' 
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900'
-                        }`}
-                      >
-                        📄 Trang 2 (Tư liệu & Ôn tập)
-                      </button>
-                    </div>
-
-                    {/* Download 2-Page PDF Button */}
+                  <div className="flex items-center gap-2.5">
+                    {/* Download PDF Button */}
                     <button
                       onClick={handleDownloadLesson2PagePDF}
                       disabled={isPdfGenerating}
-                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                      title="Tải trọn bộ tài liệu 2 trang chuẩn định dạng PDF A4"
+                      className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      title="Tải file PDF tóm tắt 2 đoạn văn"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>{isPdfGenerating ? 'Đang xuất PDF...' : 'Tải File PDF 2 Trang'}</span>
+                      <Download className="w-4 h-4" />
+                      <span>{isPdfGenerating ? 'Đang xuất PDF...' : 'Tải File PDF 2 Đoạn Văn'}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* PDF Page 1 Content */}
-                {currentPdfPage === 1 && (
-                  <div className="p-6 sm:p-8 rounded-2xl bg-amber-50/40 dark:bg-gray-900/40 border border-amber-200 dark:border-amber-800/60 space-y-6">
-                    <div className="flex items-center justify-between border-b border-amber-200 dark:border-amber-800/40 pb-3">
-                      <span className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">
-                        {currentLesson.page1.headerTitle}
-                      </span>
-                      <span className="text-xs font-bold text-gray-400">Trang 1 / 2</span>
-                    </div>
-
-                    {/* Main Concept Highlight Box */}
-                    <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border-l-4 border-amber-500 shadow-xs space-y-2">
-                      <h5 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Khái niệm & Luận điểm then chốt</span>
+                {/* PDF 2-PARAGRAPH CONCISE VIEW */}
+                <div className="p-6 sm:p-8 rounded-2xl bg-amber-50/40 dark:bg-gray-900/40 border border-amber-200 dark:border-amber-800/60 space-y-6">
+                  
+                  {/* Paragraph 1 Box */}
+                  <div className="p-6 rounded-2xl bg-white dark:bg-gray-800 border-l-4 border-amber-500 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <span>Đoạn 1: Khái niệm & Bối cảnh Lịch sử Cốt lõi</span>
                       </h5>
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
-                        {currentLesson.page1.mainConcept}
-                      </p>
-                    </div>
-
-                    {/* Core Knowledge Sections */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {currentLesson.page1.coreKnowledge.map((sec, idx) => (
-                        <div key={idx} className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-3">
-                          <h6 className="font-black text-sm text-gray-900 dark:text-white">
-                            {sec.sectionTitle}
-                          </h6>
-                          <ul className="space-y-2 text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                            {sec.bullets.map((bullet, bIdx) => (
-                              <li key={bIdx} className="flex items-start gap-2">
-                                <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
-                                <span>{bullet}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Chronology Timeline */}
-                    {currentLesson.page1.chronologyTimeline && (
-                      <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-3">
-                        <h6 className="font-black text-sm text-gray-900 dark:text-white flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-amber-600" />
-                          <span>Dòng thời gian sự kiện lịch sử then chốt</span>
-                        </h6>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          {currentLesson.page1.chronologyTimeline.map((tl, idx) => (
-                            <div key={idx} className="p-3 rounded-xl bg-amber-50/60 dark:bg-gray-900/60 border border-amber-100 dark:border-gray-700 flex items-start gap-2.5 text-xs">
-                              <span className="px-2 py-0.5 rounded-md bg-amber-600 text-white font-black text-[10px] shrink-0">
-                                {tl.time}
-                              </span>
-                              <span className="font-semibold text-gray-800 dark:text-gray-200">
-                                {tl.event}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* PDF Page 2 Content */}
-                {currentPdfPage === 2 && (
-                  <div className="p-6 sm:p-8 rounded-2xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200 dark:border-slate-800 space-y-6">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                      <span className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest">
-                        {currentLesson.page2.headerTitle}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200">
+                        Đoạn 1/2
                       </span>
-                      <span className="text-xs font-bold text-gray-400">Trang 2 / 2</span>
                     </div>
-
-                    {/* Historical Quotes and Archives */}
-                    <div className="space-y-4">
-                      <h5 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                        Tư liệu sử học & Sử liệu trích dẫn
-                      </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {currentLesson.page2.historicalQuotes.map((q, qIdx) => (
-                          <div key={qIdx} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-900/60 space-y-2">
-                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 block uppercase">
-                              {q.source}
-                            </span>
-                            <blockquote className="text-xs font-black text-gray-900 dark:text-white italic leading-relaxed">
-                              {q.quote}
-                            </blockquote>
-                            <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-normal">
-                              {q.context}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Comparison Table */}
-                    {currentLesson.page2.comparisonTable && (
-                      <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-3">
-                        <h6 className="font-black text-sm text-gray-900 dark:text-white">
-                          Bảng đối chiếu & Hệ thống hóa
-                        </h6>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs text-left">
-                            <thead className="bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-black">
-                              <tr>
-                                {currentLesson.page2.comparisonTable.headers.map((h, i) => (
-                                  <th key={i} className="p-2.5 border border-amber-200 dark:border-amber-800">{h}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {currentLesson.page2.comparisonTable.rows.map((r, ri) => (
-                                <tr key={ri} className="border-b border-gray-100 dark:border-gray-800">
-                                  {r.map((cell, ci) => (
-                                    <td key={ci} className="p-2.5 border border-gray-100 dark:border-gray-800 font-medium text-gray-700 dark:text-gray-300">
-                                      {cell}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Golden Rules */}
-                    <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2">
-                      <h6 className="text-xs font-black uppercase text-amber-700 dark:text-amber-300">
-                        🌟 Ghi nhớ vàng Lịch sử
-                      </h6>
-                      <ul className="space-y-1.5 text-xs text-amber-900 dark:text-amber-200 font-semibold">
-                        {currentLesson.page2.goldenRules.map((gr, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span>★</span>
-                            <span>{gr}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Review Questions */}
-                    <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-2">
-                      <h6 className="text-xs font-black uppercase text-gray-700 dark:text-gray-300">
-                        ❓ Câu hỏi củng cố tự rèn luyện
-                      </h6>
-                      <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
-                        {currentLesson.page2.reviewQuestions.map((rq, idx) => (
-                          <p key={idx} className="font-medium">{rq}</p>
-                        ))}
-                      </div>
-                    </div>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                      {currentLesson.page1.mainConcept} {currentLesson.page1.coreKnowledge[0]?.bullets.join(' ')}
+                    </p>
                   </div>
-                )}
+
+                  {/* Paragraph 2 Box */}
+                  <div className="p-6 rounded-2xl bg-white dark:bg-gray-800 border-l-4 border-teal-500 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-black uppercase tracking-wider text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-teal-500" />
+                        <span>Đoạn 2: Tư liệu Sử học, Ý nghĩa & Bài học Thực tiễn</span>
+                      </h5>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-200">
+                        Đoạn 2/2
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                      {currentLesson.sketchnote.takeaway} {currentLesson.page2.goldenRules.join(' ')}
+                    </p>
+                  </div>
+
+                  {/* Timeline Ribbon (Compact) */}
+                  {currentLesson.page1.chronologyTimeline && currentLesson.page1.chronologyTimeline.length > 0 && (
+                    <div className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 space-y-2">
+                      <span className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider block">
+                        ⏱️ Mốc thời gian then chốt:
+                      </span>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {currentLesson.page1.chronologyTimeline.slice(0, 3).map((tl, idx) => (
+                          <span key={idx} className="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950 text-amber-900 dark:text-amber-200 font-bold text-xs border border-amber-200 dark:border-amber-800">
+                            [{tl.time}]: {tl.event}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
               </div>
 
               {/* -------------------------------------------------------- */}
               {/* PHẦN BỔ TRỢ 1: MINDMAP (SƠ ĐỒ TƯ DUY)                     */}
               {/* -------------------------------------------------------- */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-indigo-100 dark:border-indigo-950/60 shadow-md p-6 sm:p-8 space-y-6">
-                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-3">
+              <div id="history-mindmap-section" className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-indigo-100 dark:border-indigo-950/60 shadow-md p-6 sm:p-8 space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black">
                       🧠
                     </div>
                     <div>
                       <h4 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                        <span>1. Sơ đồ Tư duy (Mindmap)</span>
+                        <span>Sơ đồ Tư duy Mindmap các Chương</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold">
-                          Trực quan hóa đa nhánh
+                          Đa nhánh chuẩn GDPT 2018
                         </span>
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Liên kết logic từ chủ đề trung tâm đến các nhánh sự kiện và từ khóa cốt lõi
+                        Hệ thống hóa trực quan kiến thức từ Chương 1 đến Chương 5 môn Lịch sử 6
                       </p>
                     </div>
                   </div>
+
+                  {/* Chapter/Lesson Mindmap Selector Bar */}
+                  <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50">
+                    {GRADE_6_HISTORY_LESSONS.map((ls) => {
+                      const isActive = ls.id === selectedLessonId;
+                      return (
+                        <button
+                          key={ls.id}
+                          onClick={() => setSelectedLessonId(ls.id)}
+                          className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'text-indigo-900 dark:text-indigo-200 hover:bg-indigo-100 dark:hover:bg-indigo-900/60'
+                          }`}
+                          title={ls.title}
+                        >
+                          Bài {ls.lessonNumber}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Visual Mindmap Canvas */}
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50/50 via-purple-50/30 to-amber-50/30 dark:from-gray-900 dark:to-gray-950 border border-indigo-200/60 dark:border-indigo-900/40 space-y-6">
+                {/* Hand-Drawn Organic Sketchy Mindmap Canvas (Strict Loose/Organic Hand-Drawn Aesthetic) */}
+                <div className="relative p-6 sm:p-10 rounded-3xl bg-[#FAF7F2] dark:bg-gray-950 border-4 border-dashed border-amber-300 dark:border-amber-900/60 shadow-inner overflow-hidden select-none min-h-[580px] flex flex-col justify-between">
                   
-                  {/* Central Node */}
-                  <div className="max-w-md mx-auto text-center p-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg space-y-1 ring-4 ring-amber-400/20">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-100 block">
-                      CHỦ ĐỀ TRUNG TÂM
-                    </span>
-                    <h5 className="text-base sm:text-lg font-black tracking-tight">
-                      {currentLesson.mindmap.centralTheme}
-                    </h5>
-                    <p className="text-[11px] text-amber-100 font-medium">
-                      {currentLesson.mindmap.themeDescription}
-                    </p>
-                  </div>
+                  {/* Decorative Hand-Drawn Floral Accents */}
+                  <div className="absolute top-3 left-4 text-amber-400 dark:text-amber-700 text-xl opacity-80 pointer-events-none">🌸 🌿 🌼 ⏳</div>
+                  <div className="absolute top-3 right-4 text-emerald-400 dark:text-emerald-700 text-xl opacity-80 pointer-events-none">📜 🍃 🌻 🌺</div>
+                  <div className="absolute bottom-3 left-4 text-orange-400 dark:text-orange-700 text-xl opacity-80 pointer-events-none">🏺 🥁 🌿 🌼</div>
+                  <div className="absolute bottom-3 right-4 text-red-400 dark:text-red-700 text-xl opacity-80 pointer-events-none">🔍 🌺 🍃 🌻</div>
 
-                  {/* Connecting Branches */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
-                    {currentLesson.mindmap.branches.map((branch) => {
-                      const isExpanded = expandedBranchId === branch.id;
-                      return (
-                        <div 
-                          key={branch.id}
-                          className="bg-white dark:bg-gray-800 p-5 rounded-2xl border-2 border-indigo-100 dark:border-indigo-900/60 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2.5">
-                              <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
-                                🌿
+                  {/* Organic Mindmap Container: Free-form Floating Branches (No Grids / No Square Cards) */}
+                  <div className="relative w-full max-w-5xl mx-auto py-4 space-y-8">
+                    
+                    {/* Central Node: Hand-Drawn Book Illustration */}
+                    <div className="relative z-10 max-w-md mx-auto text-center p-5 rounded-[40px] bg-white dark:bg-gray-900 border-4 border-amber-500 dark:border-amber-600 shadow-2xl ring-8 ring-amber-100/70 dark:ring-amber-950/40 transform hover:scale-[1.03] transition-transform">
+                      {/* Student Character Doodles */}
+                      <div className="flex items-center justify-center gap-3 pb-1">
+                        <span className="text-2xl animate-bounce">👦🏻</span>
+                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs uppercase tracking-widest shadow-xs">
+                          {currentLesson.lessonNumber === 2 ? '📖 BÀI 2 • TƯ LIỆU LỊCH SỬ' : `📖 BÀI ${currentLesson.lessonNumber} • TƯ DUY HÌNH ẢNH`}
+                        </span>
+                        <span className="text-2xl animate-bounce">👧🏻</span>
+                      </div>
+
+                      <h5 className="text-lg sm:text-xl font-black tracking-tight text-amber-950 dark:text-amber-100 font-serif leading-snug uppercase">
+                        {currentLesson.mindmap.centralTheme}
+                      </h5>
+                    </div>
+
+                    {/* Loose Organic Branch Clusters radiating outwards (No blocky lists, short 1-3 word labels) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 pt-2 relative z-10">
+                      {currentLesson.mindmap.branches.map((branch, idx) => {
+                        // Organic hand-drawn sketchy branch colors & curve accents
+                        const branchTheme = [
+                          {
+                            titleBg: 'bg-cyan-500 text-white',
+                            badgeBg: 'bg-cyan-50 dark:bg-cyan-950/60 border-cyan-300 dark:border-cyan-800 text-cyan-900 dark:text-cyan-200',
+                            itemBorder: 'border-cyan-300 dark:border-cyan-800 bg-cyan-50/70 dark:bg-cyan-950/40 text-cyan-900 dark:text-cyan-100',
+                            lineColor: 'border-cyan-400',
+                            icon: '🗣️'
+                          },
+                          {
+                            titleBg: 'bg-emerald-600 text-white',
+                            badgeBg: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200',
+                            itemBorder: 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-100',
+                            lineColor: 'border-emerald-400',
+                            icon: '📜'
+                          },
+                          {
+                            titleBg: 'bg-amber-500 text-white',
+                            badgeBg: 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200',
+                            itemBorder: 'border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-100',
+                            lineColor: 'border-amber-400',
+                            icon: '🏺'
+                          },
+                          {
+                            titleBg: 'bg-rose-500 text-white',
+                            badgeBg: 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200',
+                            itemBorder: 'border-rose-300 dark:border-rose-800 bg-rose-50/70 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100',
+                            lineColor: 'border-rose-400',
+                            icon: '🔍'
+                          }
+                        ][idx % 4];
+
+                        return (
+                          <div key={branch.id} className="relative space-y-4 p-4 rounded-[32px] border-2 border-dashed border-gray-300/60 dark:border-gray-800 bg-white/40 dark:bg-gray-900/30 backdrop-blur-xs">
+                            
+                            {/* Branch Curved Stem Title (Organic Cloud Pill) */}
+                            <div className="flex items-center gap-3">
+                              <span className={`px-4 py-1.5 rounded-full ${branchTheme.titleBg} font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-2 transform -rotate-1`}>
+                                <span>{branchTheme.icon}</span>
+                                <span>{branch.title}</span>
                               </span>
-                              <h6 className="font-black text-sm text-gray-900 dark:text-white">
-                                {branch.title}
-                              </h6>
+                              <div className={`h-1 flex-1 border-b-4 border-dotted ${branchTheme.lineColor} rounded-full`} />
                             </div>
 
-                            <div className="space-y-2.5 pt-1">
+                            {/* Sparse 1-3 Word Keyword Labels (Loose Floating Pills - NO Paragraphs / NO Square Lists) */}
+                            <div className="flex flex-wrap gap-2.5 pt-1 pl-2">
                               {branch.subBranches.map((sub, sIdx) => (
-                                <div key={sIdx} className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800 text-xs space-y-1">
-                                  <span className="font-bold text-gray-800 dark:text-gray-200 block">
-                                    ▸ {sub.title}
-                                  </span>
-                                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    {sub.detail}
-                                  </p>
-                                  {sub.keywords && (
-                                    <div className="flex flex-wrap gap-1 pt-1">
-                                      {sub.keywords.map((kw, ki) => (
-                                        <span key={ki} className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold">
-                                          #{kw}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
+                                <div 
+                                  key={sIdx} 
+                                  className={`px-3.5 py-2 rounded-2xl border-2 ${branchTheme.itemBorder} shadow-xs font-black text-xs flex items-center gap-2 transform hover:scale-105 transition-transform cursor-default`}
+                                >
+                                  <span className="text-amber-500">✦</span>
+                                  <span>{sub.title}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Organic Canvas Hand-Drawn Footer */}
+                  <div className="pt-4 text-center text-xs font-black text-amber-800/80 dark:text-amber-300/80 flex items-center justify-center gap-2 border-t border-dashed border-amber-200 dark:border-gray-800">
+                    <span>✏️ Sơ đồ Tư duy Hình họa Hand-drawn (Nhiều màu sắc • Từ khóa cô đọng 1-3 từ)</span>
                   </div>
                 </div>
               </div>
@@ -832,14 +812,73 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                       💡 Thông điệp vàng: {currentLesson.sketchnote.takeaway}
                     </span>
                   </div>
+                  {/* Essay Exam Review Questions Box */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-gray-800 border-2 border-emerald-200 dark:border-gray-700 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
+                      <span className="text-xs font-black uppercase text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4 text-emerald-600" />
+                        <span>Góc Ôn Tập Câu Hỏi Tự Luận Trọng Tâm Có Trong Bài Thi</span>
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">
+                        {currentLesson.page2.reviewQuestions.length} Câu Tự Luận Ôn Thi
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {currentLesson.page2.reviewQuestions.map((qText, qIdx) => {
+                        const isExpanded = expandedEssayIndex === qIdx;
+                        return (
+                          <div key={qIdx} className="rounded-2xl border border-emerald-100 dark:border-gray-700 overflow-hidden">
+                            <button
+                              onClick={() => setExpandedEssayIndex(isExpanded ? null : qIdx)}
+                              className="w-full p-3.5 bg-emerald-50/50 dark:bg-gray-900/60 hover:bg-emerald-100/50 text-left font-bold text-xs text-gray-900 dark:text-white flex items-center justify-between gap-2 cursor-pointer transition-colors"
+                            >
+                              <span className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                                  {qIdx + 1}
+                                </span>
+                                <span>{qText}</span>
+                              </span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px] shrink-0">
+                                {isExpanded ? '▲ Ẩn gợi ý' : '▼ Xem dàn ý đạt điểm tối đa'}
+                              </span>
+                            </button>
+
+                            {isExpanded && (
+                              <div className="p-4 bg-white dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 leading-relaxed border-t border-emerald-100 dark:border-gray-700 space-y-2.5">
+                                <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-black text-[11px] uppercase tracking-wider">
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>GỢI Ý TRẢ LỜI CHUẨN ĐIỂM TỐI ĐA (KIM CỔT GDPT 2018):</span>
+                                </div>
+                                <p className="p-3 rounded-xl bg-emerald-50/40 dark:bg-gray-900/40 border border-emerald-100 dark:border-gray-800 text-gray-800 dark:text-gray-200 font-medium">
+                                  {currentLesson.page1.mainConcept}
+                                </p>
+                                <div className="space-y-1 pl-1">
+                                  <span className="font-bold text-emerald-800 dark:text-emerald-300 text-[11px] block">
+                                    Ý cốt lõi cần trình bày trong bài làm:
+                                  </span>
+                                  <ul className="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-300 text-[11px]">
+                                    {currentLesson.page1.coreKnowledge[0]?.bullets.map((b, bi) => (
+                                      <li key={bi}>{b}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
               {/* -------------------------------------------------------- */}
               {/* PHẦN BỔ TRỢ 3: BỘ THẺ GHI NHỚ (FLASHCARDS) CỤC BỘ         */}
-              {/* Ít nhất 5 tấm thẻ, lật 3D, đánh dấu đã thuộc, không lỗi   */}
+              {/* Ít nhất 6 tấm thẻ, lật 3D, đánh dấu đã thuộc, không lỗi   */}
               {/* -------------------------------------------------------- */}
-              <div className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-rose-100 dark:border-rose-950/60 shadow-md p-6 sm:p-8 space-y-6">
+              <div id="history-flashcards-section" className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-rose-100 dark:border-rose-950/60 shadow-md p-6 sm:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center font-black">
@@ -945,6 +984,127 @@ export const HistoryStudyHub: React.FC<HistoryStudyHubProps> = ({
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* -------------------------------------------------------- */}
+              {/* PHẦN BỔ TRỢ 4: VIDEO BÀI GIẢNG YOUTUBE (VIETJACK)         */}
+              {/* Kênh VietJack playlist "Bài giảng Lịch sử lớp 6 - Kết nối tri thức" */}
+              {/* -------------------------------------------------------- */}
+              <div id="history-video-section" className="bg-white dark:bg-gray-800 rounded-3xl border-2 border-red-100 dark:border-red-950/60 shadow-md p-6 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center font-black">
+                      📺
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>4. Video Bài Giảng VietJack (SGK Kết nối tri thức)</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300 font-bold">
+                          Kênh VietJack Official
+                        </span>
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Hệ thống video bài giảng Lịch sử 6 do thầy cô VietJack giảng dạy chi tiết chuẩn chương trình mới
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="https://www.youtube.com/results?search_query=Vietjack+Lich+su+lop+6+ket+noi+tri+thuc"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    <span>Mở Playlist VietJack trên YouTube</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+
+                {/* Video Player + Video Selector Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column: Embed YouTube Player */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg border-2 border-red-200 dark:border-gray-700 bg-black">
+                      <iframe 
+                        src={`https://www.youtube-nocookie.com/embed/${activeVideo.id}?autoplay=0&rel=0&modestbranding=1`}
+                        title={activeVideo.title}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+
+                    {/* Active Video Info Banner */}
+                    <div className="p-5 rounded-2xl bg-red-50/50 dark:bg-gray-900/60 border border-red-200 dark:border-gray-800 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-red-600 text-white">
+                          {activeVideo.chapterTag} • VietJack
+                        </span>
+                        <span className="text-xs font-bold text-gray-500">
+                          {activeVideo.teacher} • {activeVideo.duration} • {activeVideo.views}
+                        </span>
+                      </div>
+                      <h5 className="font-black text-base text-gray-900 dark:text-white leading-snug">
+                        {activeVideo.title}
+                      </h5>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {activeVideo.description}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {activeVideo.keyTopics.map((kt, idx) => (
+                          <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-white dark:bg-gray-800 text-red-700 dark:text-red-300 font-bold border border-red-200 dark:border-gray-700">
+                            ✓ {kt}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Playlist Video Selector */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-black uppercase text-gray-500 dark:text-gray-400 block">
+                      Danh sách bài giảng VietJack (7 Video bài học):
+                    </span>
+                    <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                      {VIETJACK_HISTORY_VIDEOS.map((vid) => {
+                        const isSelected = vid.id === activeVideoId;
+                        return (
+                          <button
+                            key={vid.id}
+                            onClick={() => setActiveVideoId(vid.id)}
+                            className={`w-full p-3.5 rounded-2xl text-left border-2 transition-all cursor-pointer flex items-start gap-3 ${
+                              isSelected
+                                ? 'bg-red-50 dark:bg-red-950/40 border-red-500 text-red-950 dark:text-red-100 shadow-md ring-2 ring-red-400/20'
+                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 text-gray-700 dark:text-gray-300'
+                            }`}
+                          >
+                            <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-black text-xs ${
+                              isSelected ? 'bg-red-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600'
+                            }`}>
+                              ▶
+                            </div>
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300">
+                                  {vid.chapterTag}
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-400">
+                                  {vid.duration}
+                                </span>
+                              </div>
+                              <h6 className="font-bold text-xs line-clamp-2 leading-snug">
+                                {vid.title}
+                              </h6>
+                              <p className="text-[10px] text-gray-500 line-clamp-1">
+                                {vid.teacher}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
