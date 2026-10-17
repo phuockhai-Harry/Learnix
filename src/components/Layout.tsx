@@ -38,7 +38,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
     { path: '/explore', label: isVi ? 'Học tập' : 'Learning', icon: <BookOpen className="w-4 h-4 shrink-0" />, roles: ['student'] },
     { path: '/practice', label: t('layout.practice'), icon: <Target className="w-4 h-4 shrink-0" />, roles: ['student'] },
     { path: '/classes', label: t('layout.classes'), icon: <Users className="w-4 h-4 text-blue-600 shrink-0" />, roles: ['student'] },
-    { path: '/achievements', label: isVi ? 'Bảng xếp hạng & Huy hiệu' : 'Badges & Leaderboard', icon: <Trophy className="w-4 h-4 text-amber-500 shrink-0" />, roles: ['student', 'teacher'] },
+    { path: '/achievements', label: isVi ? 'Bảng xếp hạng & Huy hiệu' : 'Badges & Leaderboard', icon: <Trophy className="w-4 h-4 text-amber-500 shrink-0" />, roles: ['student'] },
     { path: '/study-rooms', label: t('layout.studyRooms'), icon: <MessageSquare className="w-4 h-4 text-teal-600 shrink-0" />, roles: ['student', 'teacher'] },
     { path: '/tutor', label: t('layout.tutor'), icon: <Bot className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />, roles: ['student'] },
     

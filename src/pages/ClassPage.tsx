@@ -517,30 +517,32 @@ export default function ClassPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Trophy className="text-yellow-500" /> Leaderboard
-          </h2>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-             {leaderboard.length > 0 ? (
-                <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                  {leaderboard.map((student, idx) => (
-                    <li key={idx} className="py-4 flex justify-between items-center group hover:bg-gray-50 dark:hover:bg-gray-750 px-4 -mx-4 rounded-xl transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <span className={`w-8 h-8 flex items-center justify-center rounded-xl text-sm font-black shadow-sm ${idx === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : idx === 1 ? 'bg-gray-100 text-gray-600 border border-gray-200' : idx === 2 ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-gray-50 text-gray-400 dark:bg-gray-700'}`}>
-                          {idx + 1}
-                        </span>
-                        <span className="font-bold text-gray-900 dark:text-gray-100">{student.name}</span>
-                      </div>
-                      <span className="font-black text-teal-600 dark:text-teal-400">{student.score} pts</span>
-                    </li>
-                  ))}
-                </ul>
-             ) : (
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No scores yet in this class.</p>
-             )}
+        {!isTeacher && profile?.role === 'student' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Trophy className="text-yellow-500" /> Leaderboard
+            </h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+               {leaderboard.length > 0 ? (
+                  <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                    {leaderboard.map((student, idx) => (
+                      <li key={idx} className="py-4 flex justify-between items-center group hover:bg-gray-50 dark:hover:bg-gray-750 px-4 -mx-4 rounded-xl transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <span className={`w-8 h-8 flex items-center justify-center rounded-xl text-sm font-black shadow-sm ${idx === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : idx === 1 ? 'bg-gray-100 text-gray-600 border border-gray-200' : idx === 2 ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-gray-50 text-gray-400 dark:bg-gray-700'}`}>
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{student.name}</span>
+                        </div>
+                        <span className="font-black text-teal-600 dark:text-teal-400">{student.score} pts</span>
+                      </li>
+                    ))}
+                  </ul>
+               ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No scores yet in this class.</p>
+               )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
